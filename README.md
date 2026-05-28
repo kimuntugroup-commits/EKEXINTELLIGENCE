@@ -319,12 +319,12 @@ If you discover a security vulnerability in EKEX Intelligence, please report it 
 
 ## About Kimuntu Group
 
-EKEX Intelligence is a product of **Kimuntu Group**, founded on **16 March 2026** by **Kayembe Ilunga Eddy-Grant**.
+EKEX Intelligence is a product of **Kimuntu Group**, founded on **16 March 2026**.
 
-### Core Team:
+### Leadership:
 
-- **Kayembe Ilunga Eddy-Grant** — Founder & CEO
-- **Goetz Kisoni** — Co-Founder
+- **Kayembe Ilunga Eddy-Grant** — Founder & Head of the Board
+- **Goetz Kisoni** — Co-Founder & CEO
 
 ### Contributors & Advisors:
 
