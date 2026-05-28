@@ -1,6 +1,6 @@
 # Contributing to EKEX Intelligence
 
-Thank you for your interest in contributing to EKEX Intelligence, the demand-supply coordination protocol for African B2B markets. This document outlines our contribution workflow, coding standards, and the Contributor License Agreement (CLA) that governs all contributions.
+Thank you for your interest in contributing to EKEX Intelligence, the demand-supply coordination protocol for African B2B markets. This document outlines our contribution workflow, coding standards, and legal requirements.
 
 ## Table of Contents
 
@@ -43,7 +43,7 @@ We pledge to make participation in our project a harassment-free experience for 
 
 - Read this document in full — especially the CLA section
 - Review open issues to find contribution opportunities
-- Join our community — contact contributors@ekexintelligence.com
+- Join our community — contact info@ekexintelligence.com
 - Understand the architecture — read `/docs/architecture/`
 
 ### Contribution Opportunities
@@ -265,23 +265,23 @@ npm run test:coverage
 
 By submitting a Contribution to EKEX Intelligence ("the Project"), you ("Contributor") agree to the following terms. If you do not agree, DO NOT submit any Contribution.
 
-**This Agreement is legally binding.** It grants Kimuntu Group and EKEX Intelligence Ltd. ("EKEX") broad rights to use your Contribution in both open-source and commercial contexts, enabling our dual-licensing business model.
+**This Agreement is legally binding.** It grants Kimuntu Group and EKEX Intelligence Ltd. ("EKEX") broad rights to use your Contribution in both open-source and commercial contexts, enabling our business model while ensuring your work is recognized and valued.
 
 ### 1. DEFINITIONS
 
-**1.1** "Contribution" means any source code, object code, patch, documentation, design, algorithm, data model, configuration, or other material submitted to the Project, including through GitHub Pull Requests, issues, email, or any other channel.
+**1.1** "Contribution" means any source code, object code, patch, documentation, design, algorithm, data model, configuration, or other material submitted to the Project, including through GitHub pull requests, issues, or direct submission.
 
 **1.2** "You" or "Your" means the individual or legal entity submitting the Contribution. If submitting on behalf of your employer, you represent that you have authority to bind your employer.
 
 **1.3** "EKEX Intelligence Core" means the software licensed under GNU AGPLv3 as published in the public repository.
 
-**1.4** "Commercial Extensions" means proprietary modules including but not limited to: Mobile Money gateway integrations (MTN MoMo, Wave, Orange Money), USSD connectivity modules, AI demand analytics engines, KYC compliance systems, and enterprise customization layers.
+**1.4** "Commercial Extensions" means proprietary modules including but not limited to: Mobile Money gateway integrations (MTN MoMo, Wave, Orange Money), USSD connectivity modules, AI demand analytics, KYC/compliance engines, and enterprise customization layers.
 
 ### 2. COPYRIGHT LICENSE GRANT
 
 **2.1 Grant of Rights**
 
-Subject to the terms of this Agreement, You hereby grant to EKEX Intelligence Ltd. a perpetual, irrevocable, worldwide, royalty-free, fully paid-up, non-exclusive license, with the right to grant and authorize sublicenses, to:
+Subject to the terms of this Agreement, You hereby grant to EKEX Intelligence Ltd. a perpetual, irrevocable, worldwide, royalty-free, fully paid-up, non-exclusive license, with the right to grant sublicenses, to:
 
 (a) Reproduce, prepare derivative works of, display, perform, distribute, and otherwise use Your Contribution;
 
@@ -295,7 +295,7 @@ Subject to the terms of this Agreement, You hereby grant to EKEX Intelligence Lt
 
 **2.2 Retention of Ownership**
 
-You retain ownership of the copyright in Your Contribution. This Agreement does NOT transfer ownership of Your copyright to EKEX. You retain the right to use Your Contribution for any purpose, subject to the exclusive license granted herein to EKEX.
+You retain ownership of the copyright in Your Contribution. This Agreement does NOT transfer ownership of Your copyright to EKEX. You retain the right to use Your Contribution for any purpose, subject only to the license granted herein.
 
 **2.3 Scope of License**
 
@@ -313,7 +313,7 @@ The license granted in Section 2.1 applies to:
 
 **3.1 Patent Grant**
 
-You hereby grant to EKEX a perpetual, irrevocable, worldwide, royalty-free, fully paid-up, non-exclusive license under any patent claims owned or controlled by You that are necessarily infringed by Your Contribution or by combination of Your Contribution with the EKEX platform:
+You hereby grant to EKEX a perpetual, irrevocable, worldwide, royalty-free, fully paid-up, non-exclusive license under any patent claims owned or controlled by You that are necessarily infringed by the use of Your Contribution, to:
 
 (a) To make, have made, use, sell, offer for sale, import, and otherwise exploit the EKEX platform;
 
@@ -323,7 +323,7 @@ You hereby grant to EKEX a perpetual, irrevocable, worldwide, royalty-free, full
 
 **3.2 Patent Retaliation**
 
-If You initiate patent litigation against EKEX or any user of the EKEX platform alleging that the EKEX platform infringes Your patents, Your patent license granted under Section 3.1 shall automatically terminate.
+If You initiate patent litigation against EKEX or any user of the EKEX platform alleging that the EKEX platform infringes Your patents, Your patent license granted under Section 3.1 shall automatically terminate as of the date of such claim.
 
 ### 4. MORAL RIGHTS AND AUTHORSHIP
 
@@ -343,13 +343,13 @@ To the fullest extent permitted by applicable law, You hereby waive and agree no
 
 **4.2 Attribution**
 
-Notwithstanding Section 4.1, EKEX agrees to maintain a CONTRIBUTORS.md file in the public repository acknowledging significant contributors. This acknowledgment is a courtesy, not a legal obligation, and may be removed if the contributor violates this Agreement or engages in conduct detrimental to the Project.
+Notwithstanding Section 4.1, EKEX agrees to maintain a CONTRIBUTORS.md file in the public repository acknowledging significant contributors. This acknowledgment is a courtesy, not a legal obligation, and does not constitute a waiver of any intellectual property rights.
 
 **4.3 Jurisdictional Variance Acknowledgment**
 
 You acknowledge that moral rights laws vary across African and international jurisdictions:
 
-(a) **OHADA/OAPI Civil Law Jurisdictions** (Benin, Burkina Faso, Cameroon, Central African Republic, Comoros, Congo, Côte d'Ivoire, Equatorial Guinea, Gabon, Guinea, Guinea-Bissau, Mali, Niger, Senegal, Chad, Togo): Moral rights may be inalienable under the Bangui Agreement. To the extent such rights cannot be waived, You agree not to enforce them against EKEX or its licensees;
+(a) **OHADA/OAPI Civil Law Jurisdictions** (Benin, Burkina Faso, Cameroon, Central African Republic, Comoros, Congo, Côte d'Ivoire, Equatorial Guinea, Gabon, Guinea, Guinea-Bissau, Mali, Niger, Rwanda, Senegal, Togo): Moral rights may be inalienable under the Bangui Agreement. You agree to a binding covenant not to assert moral rights against EKEX;
 
 (b) **Common Law Jurisdictions** (Nigeria, Kenya, Ghana, South Africa, Tanzania, Uganda, Rwanda): Moral rights may be limited or waivable. You agree to full waiver where permitted;
 
@@ -387,7 +387,7 @@ If Your Contribution includes third-party code, You represent that:
 
 **6.1 Indemnity Obligation**
 
-You agree to indemnify, defend, and hold harmless EKEX Intelligence Ltd., its affiliates, officers, directors, employees, agents, and licensors from and against any and all claims, damages, losses, liabilities, costs, and expenses (including reasonable attorneys' fees) arising out of or relating to:
+You agree to indemnify, defend, and hold harmless EKEX Intelligence Ltd., its affiliates, officers, directors, employees, agents, and licensors from and against any and all claims, damages, losses, liabilities, costs, and expenses (including reasonable attorneys' fees) arising from:
 
 (a) Your Contribution;
 
@@ -405,7 +405,7 @@ This indemnification obligation survives termination of this Agreement and appli
 
 **7.1 Pull Request Signing**
 
-By creating a GitHub Pull Request ("PR") to the EKEX repository, You AUTOMATICALLY agree to the terms of this Agreement. The act of creating a PR constitutes Your electronic signature and acceptance of this Agreement.
+By creating a GitHub Pull Request ("PR") to the EKEX repository, You AUTOMATICALLY agree to the terms of this Agreement. The act of creating a PR constitutes Your electronic signature and acceptance of this CLA.
 
 **7.2 DCO Alternative**
 
@@ -486,7 +486,7 @@ EKEX may modify this Agreement with 30 days' notice. Continued contributions aft
 #### Option 2: Manual Email Acceptance
 
 1. Read this document in full
-2. Send an email to [legal@ekexintelligence.com](mailto:legal@ekexintelligence.com) with subject: "CLA Acceptance — [Your GitHub Username]"
+2. Send an email to [info@ekexintelligence.com](mailto:info@ekexintelligence.com) with subject: "CLA Acceptance — [Your GitHub Username]"
 3. Include the following text: "I have read and agree to the EKEX Intelligence Contributor License Agreement v2.0."
 4. Include your full name, GitHub username, and email address
 
@@ -541,14 +541,12 @@ Despite the broad license grant, EKEX is committed to recognizing and rewarding 
 
 | Channel | Purpose |
 |---------|---------|
-| 📧 [contributors@ekexintelligence.com](mailto:contributors@ekexintelligence.com) | General contributor questions |
-| 📧 [legal@ekexintelligence.com](mailto:legal@ekexintelligence.com) | CLA, licensing, and legal inquiries |
+| 📧 [info@ekexintelligence.com](mailto:info@ekexintelligence.com) | General contributor questions, CLA, licensing, and legal inquiries |
 | 🐙 [GitHub Issues](https://github.com/kimuntugroup-commits/EKEXINTELLIGENCE/issues) | Technical questions and bug reports |
-| 💬 Telegram: @ekexcontributors | Community chat (coming soon) |
 
 ---
 
-<div align=\"center\">
+<div align="center">
 
 Thank you for helping build the future of African B2B infrastructure.
 
