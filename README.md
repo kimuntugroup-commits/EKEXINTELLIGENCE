@@ -6,7 +6,7 @@ Scalable Digital Infrastructure for Demand-Driven African Supply Chains
 
 [https://www.gnu.org/licenses/agpl-3.0](https://www.gnu.org/licenses/agpl-3.0)
 
-[Documentation](https://github.com/kimuntugroup-commits/EKEXINTELLIGENCE/tree/main/docs) · [API Reference](https://github.com/kimuntugroup-commits/EKEXINTELLIGENCE/docs/API.md) · [Report Issue](https://github.com/kimuntugroup-commits/EKEXINTELLIGENCE/issues) · [Enterprise Licensing](mailto:licensing@ekexintelligence.com)
+[Documentation](https://github.com/kimuntugroup-commits/EKEXINTELLIGENCE/tree/main/docs) · [API Reference](https://github.com/kimuntugroup-commits/EKEXINTELLIGENCE/docs/API.md) · [Report Issue](https://github.com/kimuntugroup-commits/EKEXINTELLIGENCE/issues)
 
 </div>
 
@@ -25,11 +25,16 @@ Scalable Digital Infrastructure for Demand-Driven African Supply Chains
 
 ## Project Overview
 
-EKEX Intelligence is a comprehensive digital infrastructure designed for market demand and B2B supply-chain management across Africa. Built from first principles by the Kimuntu Group, EKEX captures consumer demand signals, structures them into standardized intelligence objects, matches them against verified supplier capabilities, detects market gaps, and continuously learns from fulfillment outcomes to improve matching accuracy over time.
+EKEX Intelligence is a comprehensive digital infrastructure designed for market demand and B2B supply-chain management across Africa. Built from first principles by the Kimuntu Group, EKEX captures consumer demand signals, structures them into standardized intelligence.
 
 ### The Problem We Solve
 
-Fragmented African markets suffer from a critical information asymmetry: consumers express demand through informal channels (WhatsApp, Telegram, word-of-mouth), while suppliers operate in silos with no visibility into aggregate demand patterns. EKEX bridges this gap by creating a closed-loop demand-supply coordination protocol that transforms scattered signals into actionable B2B intelligence.
+Fragmented African markets suffer from a critical information asymmetry: consumers express demand through informal channels (WhatsApp, Telegram, word-of-mouth), while suppliers operate in silos without access to real-time signal data. This fragmentation leads to:
+
+- **Inventory Mismatches**: Suppliers stock products nobody wants while demand goes unmet
+- **Missed Opportunities**: Market gaps remain invisible to entrepreneurs who could fill them
+- **Information Arbitrage**: Middlemen extract disproportionate value from information gaps
+- **Capital Inefficiency**: B2B credit decisions rely on guesswork instead of demand data
 
 ### Our Mission
 
@@ -49,11 +54,11 @@ To build the foundational data infrastructure that enables African businesses to
 
 ## Repository Architecture
 
-This public repository contains the AGPLv3-licensed core infrastructure of EKEX Intelligence. Commercial extensions, proprietary integrations, and enterprise-grade modules are maintained in separate, private repositories.
+This public repository contains the AGPLv3-licensed core infrastructure of EKEX Intelligence. Commercial extensions, proprietary integrations, and enterprise-grade modules are maintained in separate private repositories.
 
 ```
 EKEX INTELLIGENCE — REPOSITORY MAP
-═══════════════════════════════════════════════════════════════════════════════
+═════════════════════════════════════════════════════════════════════
 
 📁 PUBLIC REPOSITORY (This Repo) — GNU AGPLv3
 │
@@ -82,9 +87,9 @@ EKEX INTELLIGENCE — REPOSITORY MAP
 ├── 📄 LICENSE                     GNU AGPLv3 (with EKEX amendments)
 └── 📄 .gitignore                  Privacy & security protections
 
-═══════════════════════════════════════════════════════════════════════════════
+═════════════════════════════════════════════════════════════════════
 📁 PRIVATE REPOSITORIES — Commercial License Required
-═══════════════════════════════════════════════════════════════════════════════
+═════════════════════════════════════════════════════════════════════
 
 🔒 ekex-commercial/mobile-money/
    ├── MTN MoMo Gateway Integration
@@ -116,7 +121,7 @@ EKEX INTELLIGENCE — REPOSITORY MAP
    ├── Multi-tenant Orchestration
    └── SLA Monitoring & Alerting
 
-═══════════════════════════════════════════════════════════════════════════════
+═════════════════════════════════════════════════════════════════════
 ```
 
 ### Boundary Philosophy
@@ -126,7 +131,7 @@ The open-core boundary is designed around protocol vs. integration:
 - **Public (AGPLv3)**: The demand-supply coordination protocol, data models, matching algorithms, and API infrastructure.
 - **Private (Commercial)**: Financial integrations, telecommunications protocols, advanced analytics, compliance engines, and enterprise customization layers.
 
-For Enterprise Licensing: Contact [licensing@ekexintelligence.com](mailto:licensing@ekexintelligence.com) to access private commercial repositories and receive proprietary deployment rights.
+For Enterprise Licensing: Contact [info@ekexintelligence.com](mailto:info@ekexintelligence.com) for access to private commercial repositories and enterprise deployment options.
 
 ## Core Capabilities
 
@@ -245,7 +250,7 @@ This repository and all files within it are licensed under the GNU Affero Genera
 
 Section 13 of AGPLv3 imposes specific obligations on anyone deploying this software as a network service (SaaS, API, web application):
 
-> If you modify the Program, your modified version must prominently offer all users interacting with it remotely through a computer network an opportunity to receive the Corresponding Source of your modified version.
+> If you modify the Program, your modified version must prominently offer all users interacting with it remotely through a computer network an opportunity to receive the Corresponding Source of your modification.
 
 ### What This Means for EKEX Deployments
 
@@ -265,9 +270,9 @@ If your organization cannot comply with AGPLv3 obligations, or requires:
 - Priority support and SLA guarantees
 - Patent and trademark usage rights
 
-**Contact our licensing team:**
+**Contact us for licensing:**
 
-📧 [licensing@ekexintelligence.com](mailto:licensing@ekexintelligence.com)
+📧 [info@ekexintelligence.com](mailto:info@ekexintelligence.com)
 
 Our commercial licensing program is designed for:
 - Enterprise B2B platforms
@@ -278,7 +283,7 @@ Our commercial licensing program is designed for:
 
 ## Contributing
 
-We welcome contributions from the African developer community and global open-source ecosystem. Please read our [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines, our Contributor License Agreement (CLA), and the contribution workflow.
+We welcome contributions from the African developer community and global open-source ecosystem. Please read our [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines, our Contributor License Agreement, and community standards.
 
 ### Key Contribution Areas:
 
@@ -294,7 +299,7 @@ We welcome contributions from the African developer community and global open-so
 
 If you discover a security vulnerability in EKEX Intelligence, please report it responsibly:
 
-📧 [security@ekexintelligence.com](mailto:security@ekexintelligence.com)
+📧 [info@ekexintelligence.com](mailto:info@ekexintelligence.com)
 
 **Please DO NOT open public issues for security vulnerabilities.**
 
@@ -310,22 +315,22 @@ If you discover a security vulnerability in EKEX Intelligence, please report it 
 
 | Channel | Contact |
 |---------|----------|
-| General Inquiries | [info@ekexintelligence.com](mailto:info@ekexintelligence.com) |
-| Enterprise Licensing | [licensing@ekexintelligence.com](mailto:licensing@ekexintelligence.com) |
-| Security Issues | [security@ekexintelligence.com](mailto:security@ekexintelligence.com) |
-| Legal Matters | [legal@ekexintelligence.com](mailto:legal@ekexintelligence.com) |
-| Contributors | [contributors@ekexintelligence.com](mailto:contributors@ekexintelligence.com) |
+| All Inquiries | [info@ekexintelligence.com](mailto:info@ekexintelligence.com) |
 
 ## About Kimuntu Group
 
 EKEX Intelligence is a product of **Kimuntu Group**, founded on **16 March 2026** by **Kayembe Ilunga Eddy-Grant**.
 
-### Co-Founders:
+### Core Team:
 
-- **Stephane Bilambo** — Finance & Operations (since March 2026)
-- **Goetz Kisoni** — Co-Founder (since March 2026)
+- **Kayembe Ilunga Eddy-Grant** — Founder & CEO
+- **Goetz Kisoni** — Co-Founder
 
-We are committed to building open, transparent infrastructure for African markets. This repository reflects that commitment — honest about current capabilities, clear about future direction, and rigorous about legal and technical standards.
+### Contributors & Advisors:
+
+- **Stephane Bilambo** — First Angel Investor & Early Contributor (4.5% equity, no vesting) · Part-time Consultant
+
+We are committed to building open, transparent infrastructure for African markets. This repository reflects that commitment — honest about current capabilities, clear about future direction, and transparent about the hard technical problems we're solving together.
 
 > "We are not asking you to believe the white paper. We are asking you to help us make it true."
 >
