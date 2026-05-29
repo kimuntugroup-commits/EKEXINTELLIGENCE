@@ -1,5 +1,5 @@
 
-# Write CONTRIBUTING.md and docs/ files with ACTUAL architecture
+# CONTRIBUTING.md and docs/ filea with ACTUAL architecture
 
 contributing_content = """# Contributing to EKEX Intelligence
 
