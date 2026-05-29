@@ -2,7 +2,7 @@
 import os
 os.makedirs('/mnt/agents/output/docs', exist_ok=True)
 
-# Write ARCHITECTURE.md with actual Base44/Deno stack
+# ARCHITECTURE.md with actual Base44/Deno stack
 architecture_content = """# EKEX Intelligence -- System Architecture
 
 ## Overview
