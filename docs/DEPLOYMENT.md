@@ -361,33 +361,3 @@ All Inquiries: [info@ekexintelligence.com](mailto:info@ekexintelligence.com)
 </div>
 """
 
-with open('/mnt/agents/output/docs/DATABASE.md', 'w') as f:
-    f.write(database_content)
-
-with open('/mnt/agents/output/docs/DEPLOYMENT.md', 'w') as f:
-    f.write(deployment_content)
-
-print("Written: docs/DATABASE.md")
-print("Written: docs/DEPLOYMENT.md")
-print("\n" + "="*60)
-print("ALL 6 FILES GENERATED WITH ACTUAL BASE44/DENO ARCHITECTURE")
-print("="*60)
-print("\nRoot files:")
-print("  - LICENSE")
-print("  - README.md")
-print("  - CONTRIBUTING.md")
-print("\nDocs files:")
-print("  - docs/ARCHITECTURE.md")
-print("  - docs/DATABASE.md")
-print("  - docs/DEPLOYMENT.md")
-print("\nKey corrections from actual repo:")
-print("  - Frontend: Vite + React 18 (not Next.js)")
-print("  - Backend: Deno Deploy Edge Functions (not Node.js/Express)")
-print("  - Database: Base44 Entity DB (not PostgreSQL primary)")
-print("  - 20 Edge Functions documented with actual names")
-print("  - AI: Vision LLM + LLM Agent (not custom PyTorch)")
-print("  - Automations: entity-triggered workflows documented")
-print("  - RLS policies: all 23 entities with role hierarchy")
-print("  - No emojis, professional formatting throughout")
-print("  - Unified contact: info@ekexintelligence.com")
-print("  - Official ad
