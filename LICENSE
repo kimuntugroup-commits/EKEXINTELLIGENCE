@@ -1,25 +1,8 @@
-<div align="center">
 
-# 📜 GNU AFFERO GENERAL PUBLIC LICENSE v3.0
+import os
 
-### EKEX Intelligence — Network Service Amendments
-
-[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
-[![Open Source](https://img.shields.io/badge/Open%20Source-Yes-brightgreen.svg)]()
-[![Self-Hostable](https://img.shields.io/badge/Self--Hostable-Ready-success.svg)]()
-[![Region: Africa](https://img.shields.io/badge/Region-Africa-FFD700.svg)]()
-
-**🏠 Official:** [EKEXintelligence.com](https://EKEXintelligence.com)  
-**📧 All Inquiries:** [info@ekexintelligence.com](mailto:info@ekexintelligence.com)
-
-</div>
-
----
-
-## License Core Text
-
-```
-GNU AFFERO GENERAL PUBLIC LICENSE
+# 1. LICENSE - Professional legal text, no emojis
+license_content = """GNU AFFERO GENERAL PUBLIC LICENSE
 Version 3, 19 November 2007
 
 Copyright (C) 2026 EKEX Intelligence / Kimuntu Group
@@ -36,123 +19,494 @@ GNU Affero General Public License for more details.
 
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+================================================================================
+                    EKEX INTELLIGENCE
+          NETWORK SERVICE AMENDMENTS & SOURCE AVAILABILITY NOTICE
+================================================================================
+
+In addition to the GNU Affero General Public License v3.0 (AGPL-3.0) terms
+above, the following amendments apply specifically to deployments of EKEX
+Intelligence as a network service (SaaS, API, bot, or any remote interaction):
+
+1. SOURCE OFFER MECHANISM
+
+   Any deployment of EKEX Intelligence that allows users to interact with
+the software remotely through a computer network MUST prominently provide
+a mechanism for all such users to obtain the Corresponding Source of the
+deployed version, including all modifications, configurations, and
+derivative works.
+
+   Acceptable mechanisms include but are not limited to:
+   (a) A "Source" link in the user interface footer or navigation;
+   (b) An API endpoint at /source or /license returning source access info;
+   (c) A message displayed by the NEZA bot (Telegram/WhatsApp) with source URL;
+   (d) Documentation prominently linked from all user-facing entry points.
+
+2. CORRESPONDING SOURCE DEFINITION
+
+   For EKEX Intelligence, "Corresponding Source" includes:
+   (a) The complete source code of all AGPL-3.0-licensed modules in src/;
+   (b) All build scripts, configuration files, and deployment manifests;
+   (c) All NEZA intent engine models, weights, and training data (if any);
+   (d) All Edge Functions in the functions/ directory;
+   (e) All modifications, patches, or custom integrations applied to the core.
+
+3. NO PROPRIETARY WRAPPER CIRCUMVENTION
+
+   Deploying reverse proxies, CDNs, API gateways, or middleware that
+obscure, modify, or intercept EKEX API requests/responses WITHOUT
+offering Corresponding Source constitutes a direct license violation.
+Building a proprietary frontend, mobile app, or wrapper around EKEX
+APIs does NOT exempt you from source disclosure obligations for the
+underlying EKEX deployment.
+
+4. WHITE-LABEL & MULTI-TENANT DEPLOYMENTS
+
+   White-label, reseller, or multi-tenant deployments MUST provide
+source access to ALL end users interacting with the software, not merely
+the deploying entity. Each end user's interface MUST contain the source
+offer mechanism.
+
+5. NO COMMERCIAL SUBLICENSE
+
+   EKEX Intelligence is licensed under AGPL-3.0 ONLY. No contributor or
+deployer may grant proprietary sublicenses, commercial licenses, or
+closed-source distribution rights for any code derived from this repository.
+Revenue may be generated ONLY through AGPL-3.0-compliant services:
+consulting, support, hosting, customization, and deployment assistance.
+
+6. ATTRIBUTION
+
+   All deployments MUST retain the following attribution in user-facing
+interfaces and API responses:
+
+   "Powered by EKEX Intelligence -- Open Intent Intelligence Infrastructure
+    (https://EKEXintelligence.com) -- Licensed under GNU AGPLv3"
+
+7. JURISDICTION
+
+   This license and its amendments are governed by the laws of Rwanda.
+Disputes shall be resolved through binding arbitration at the
+Kigali International Arbitration Centre (KIAC).
+
+================================================================================
+
+For the full text of the GNU Affero General Public License v3.0, see:
+https://www.gnu.org/licenses/agpl-3.0.html
+
+For source access to this deployment, contact: info@ekexintelligence.com
+
+Copyright (C) 2026 Kimuntu Group
+Authors: Kayembe Ilunga Eddy-Grant, Stephane Bilambo, Goetz Kisoni
+"""
+
+# 2. README.md - Reflects ACTUAL Base44/Deno architecture
+readme_content = """<div align="center">
+
+# EKEX INTELLIGENCE
+
+### Open Intent Intelligence Infrastructure for Local Commerce
+
+[![AGPLv3 License](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
+[![Status](https://img.shields.io/badge/Status-Production%20Ready-green.svg)]()
+[![Platform](https://img.shields.io/badge/Platform-Web%20%7C%20API%20%7C%20Telegram%20%7C%20WhatsApp-orange.svg)]()
+[![Region](https://img.shields.io/badge/Region-Africa-FFD700.svg)]()
+[![Self-Hostable](https://img.shields.io/badge/Self--Hostable-Ready-success.svg)]()
+[![Open Source](https://img.shields.io/badge/Open%20Source-100%25-brightgreen.svg)]()
+
+[EKEXintelligence.com](https://EKEXintelligence.com) &middot; [Documentation](https://docs.ekexintelligence.com) &middot; [API Reference](https://api.ekexintelligence.com) &middot; [Report Issue](https://github.com/ekexintelligence/ekex-core/issues)
+
+**All Inquiries:** [info@ekexintelligence.com](mailto:info@ekexintelligence.com)
+
+</div>
+
+---
+
+## Table of Contents
+
+- [What is EKEX Intelligence?](#what-is-ekex-intelligence)
+- [NEZA: The Visual Intent Engine](#neza-the-visual-intent-engine)
+- [The Core Loop](#the-core-loop)
+- [Repository Architecture](#repository-architecture)
+- [Core Capabilities](#core-capabilities)
+- [Technology Stack](#technology-stack)
+- [Getting Started](#getting-started)
+- [AGPL-3.0 Compliance Notice](#agpl-30-compliance-notice)
+- [Contributing](#contributing)
+- [Security](#security)
+- [Support](#support)
+- [About](#about)
+
+---
+
+## What is EKEX Intelligence?
+
+**EKEX Intelligence** is a self-hostable, open-source commerce intelligence infrastructure. It transforms how local markets match demand to supply by understanding what people want -- especially when they show, not just tell.
+
+### The Problem
+
+Informal African markets run on intent expressed through scattered channels: WhatsApp forwards, Telegram messages, voice notes, and photos. Suppliers operate blind to aggregate demand. EKEX bridges this gap not by building another marketplace, but by making intent understandable and actionable as open infrastructure.
+
+### Our Mission
+
+> To build the foundational data infrastructure that enables African businesses to anticipate demand, optimize supply, and capture market opportunities that would otherwise remain invisible.
+
+### Current Operational Scope
+
+| Metric | Status |
+|---|---|
+| Primary Market | Kigali, Rwanda |
+| Expansion Pipeline | Nairobi, Kenya &middot; Kampala, Uganda |
+| Active Consumers | 4+ real users submitting signals |
+| Verified Suppliers | 6+ active across Rwanda & Uganda |
+| Signal Volume | 14+ demand signals captured |
+| Product Categories | Fashion/Apparel (primary) |
+| Telegram Bot | NEZA (live, timeout fix pending) |
+
+---
+
+## NEZA: The Visual Intent Engine
+
+**NEZA** is the multimodal intent intelligence layer at the heart of EKEX. It processes a single input -- an image, a voice note, a WhatsApp message, or a Telegram text -- and extracts structured intent: product, attributes, quality, style, and urgency. When an image is present, NEZA treats it as the highest-confidence signal.
+
+### How NEZA Works
+
+1. **Ingest** -- Captures input from any channel (image, text, voice, WhatsApp, Telegram)
+2. **Understand** -- Extracts intent: product recognition, attribute parsing (material, quality, category, style)
+3. **Structure** -- Formalizes intent into a `ConsumerSignal` entity with confidence scoring
+4. **Route** -- Hands structured intent to the AI inference layer for matching
+
+NEZA is not a chatbot. It is an intent engine that happens to speak through messaging channels.
+
+---
+
+## The Core Loop
+
+```
+Intent -> Visual/Language Understanding -> Product Match -> Local Availability
+    |
+    v
+Fulfillment OR Unmet Demand -> EKEX Network Routing
+```
+
+1. **Intent Capture** -- NEZA ingests multimodal signals (image, text, voice, WhatsApp, Telegram).
+2. **Visual/Language Understanding** -- NEZA extracts intent: product recognition, attribute parsing (material, quality, category, style).
+3. **Product Match** -- AI inference layer matches intent against structured supply data via Edge Functions.
+4. **Local Availability** -- Location-aware filtering (city -> country -> global) verifies stock proximity.
+5. **Fulfillment OR Unmet Demand** -- If matched, route to supplier via email/WhatsApp/Telegram. If unmatched, flag as unmet demand for network intelligence.
+6. **EKEX Network Routing** -- Aggregate unmet demand, route signals to supplier networks, enable regional interoperability.
+
+---
+
+## Repository Architecture
+
+```
+EKEX INTELLIGENCE -- REPOSITORY MAP
+================================================================================
+
+PUBLIC REPOSITORY -- GNU AGPLv3
+|
+|-- src/                        Frontend SPA (Vite + React 18)
+|   |-- main.jsx                Application entry point
+|   |-- App.jsx                 React Router v6 configuration
+|   |-- pages/                  Route-level page components
+|   |   |-- Home.jsx            Landing page, NEZA chat widget
+|   |   |-- Dashboard.jsx       Consumer demand pins, signal tracking
+|   |   |-- NezaChat.jsx        AI demand chat interface
+|   |   |-- Discover.jsx        Product discovery gallery
+|   |   |-- SupplierPortal.jsx  Supplier dashboard, products, orders
+|   |   |-- Reports.jsx         Credit-gated market reports
+|   |   |-- DemandBoard.jsx     Public demand marketplace
+|   |   |-- AdminPortal.jsx     Applications, suppliers, verification
+|   |-- components/             Reusable UI components
+|   |-- hooks/                  Custom React hooks (useAdminGuard, etc.)
+|   |-- lib/                    Utility functions, SDK clients
+|
+|-- functions/                  Edge Functions (Deno Deploy, 20 handlers)
+|   |-- activateSupplierAccount.js
+|   |-- adminGetAllProducts.js
+|   |-- analyzeImage.js              Vision LLM image analysis
+|   |-- checkDuplicateAccount.js
+|   |-- checkUserCredits.js
+|   |-- consumeCredit.js
+|   |-- createSupplierAccreditation.js
+|   |-- deliverReport.js
+|   |-- fetchProductGallery.js
+|   |-- findSuppliersByProduct.js
+|   |-- flagSupplierMisconduct.js
+|   |-- notifyCommandCenter.js
+|   |-- notifySupplierOnSignal.js
+|   |-- onSupplierApplicationCreated.js
+|   |-- processSupplierTag.js
+|   |-- requestCreditPack.js
+|   |-- routeSignalToSuppliers.js    Signal routing automation
+|   |-- runProductMatching.js        AI similarity scoring
+|   |-- sendMatchEmail.js            Resend email delivery
+|   |-- syncSignalToSupabase.js      Supabase mirror sync
+|
+|-- docs/                       Public documentation
+|   |-- ARCHITECTURE.md         System architecture
+|   |-- DATABASE.md             Entity schemas and RLS policies
+|   |-- DEPLOYMENT.md           Deployment and environment setup
+|
+|-- .env.example                Environment variable template
+|-- vite.config.js              Vite build configuration
+|-- tailwind.config.js          Tailwind CSS configuration
+|-- package.json                Dependencies and scripts
+|-- README.md                   This file
+|-- CONTRIBUTING.md             Contribution guidelines
+|-- LICENSE                     GNU AGPLv3 + EKEX Network Service Amendments
+|-- .gitignore                  Privacy & security protections
+
+================================================================================
 ```
 
 ---
 
-## 🔐 EKEX Intelligence — Network Service Amendments
+## Core Capabilities
 
-> **⚠️ CRITICAL:** These amendments apply to ALL deployments of EKEX Intelligence as a network service (SaaS, API, bot, or any remote user interaction).
+### NEZA Intent Engine
 
-### 📋 Amendment Index
+- **Multimodal ingestion**: Image, text, voice, WhatsApp, Telegram
+- **Visual intent extraction**: Product recognition, material detection, quality assessment, style classification (via Vision LLM)
+- **Language understanding**: Attribute parsing, urgency detection, preference inference (via LLM Agent)
+- **Signal deduplication**: 5-gate logic (technical duplicate, return-after-match, genuine re-submission, velocity flood, default)
 
-| # | Amendment | Status |
+### AI Inference Layer (Edge Functions)
+
+- **Image Analysis**: Vision LLM processes uploaded images for product identification
+- **Keyword Extraction**: LLM extracts structured attributes from natural language
+- **Similarity Scoring**: AI scoring (0-100) per product for match ranking
+- **Location Filtering**: City -> country -> global fallback for availability
+- **Top-N Ranking**: Returns top 3 matches with confidence thresholds
+
+### EKEX Intelligence Layer
+
+- **Local availability matching**: Real-time stock proximity verification
+- **Unmet demand detection**: Classification of unmatched intent for network intelligence
+- **Supplier network routing**: Signal distribution to verified supplier pools via WhatsApp/Telegram/Email
+- **Regional interoperability**: Cross-city, cross-country demand aggregation
+- **Feedback learning**: Temporal decay, confidence adjustment, recursive improvement
+
+---
+
+## Technology Stack
+
+| Layer | Technology | Purpose |
 |---|---|---|
-| 1 | Source Offer Mechanism | **MANDATORY** |
-| 2 | Corresponding Source Definition | **MANDATORY** |
-| 3 | No Proprietary Wrapper Circumvention | **MANDATORY** |
-| 4 | White-Label & Multi-Tenant | **MANDATORY** |
-| 5 | No Commercial Sublicensing | **MANDATORY** |
-| 6 | Attribution | **MANDATORY** |
-| 7 | Jurisdiction | **MANDATORY** |
+| Frontend | Vite + React 18 + Tailwind CSS + shadcn/ui | SPA, mobile-responsive, dark theme |
+| Routing | React Router v6 | Client-side navigation |
+| State/Data | TanStack Query v5 | Server state management |
+| Animation | Framer Motion | UI transitions |
+| Backend | Deno Deploy Edge Functions | 20 serverless handlers |
+| SDK | @base44/sdk v0.8.25 | Platform integration |
+| Database | Base44 Entity DB (document-store) | Primary data store with JSON Schema |
+| Mirror DB | Supabase (PostgreSQL) | Secondary analytics store |
+| Auth | Base44 Auth + RLS | Identity and access control |
+| Email | Resend | Transactional email delivery |
+| Notifications | Command Center | Internal webhook routing |
+| AI/ML | Vision LLM + LLM Agent | Image analysis, natural language understanding |
+| Storage | Base44 File Storage | Image uploads, document storage |
+| Realtime | Base44 Realtime | Live signal updates |
+| Automations | Base44 Automations | Entity-triggered + scheduled workflows |
 
 ---
 
-### 1️⃣ Source Offer Mechanism
+## Getting Started
 
-Any deployment of EKEX Intelligence that allows users to interact with the software remotely through a computer network **MUST** prominently provide a mechanism for all such users to obtain the **Corresponding Source** of the deployed version, including all modifications, configurations, and derivative works.
+### Prerequisites
 
-**✅ Acceptable Mechanisms:**
+- Node.js 18+ and npm
+- Git
+- Deno (for Edge Function development)
 
-| Method | Implementation |
+### Quick Start
+
+```bash
+# 1. Clone the Repository
+git clone https://github.com/ekexintelligence/ekex-core.git
+cd ekex-core
+
+# 2. Configure Environment
+cp .env.example .env.local
+# Edit .env.local -- NEVER commit this file
+
+# 3. Install Dependencies
+npm install
+
+# 4. Start Development Server
+npm run dev
+```
+
+### Access Points
+
+| Service | URL |
 |---|---|
-| UI Footer | `"Source"` link in user interface footer or navigation |
-| API Endpoint | `GET /source` or `GET /license` returning source access info |
-| Bot Message | NEZA bot (Telegram/WhatsApp) replies with source URL |
-| Documentation | Prominently linked from all user-facing entry points |
+| Frontend Dev | http://localhost:5173 |
+| Admin Dashboard | http://localhost:5173/admin |
 
----
+### Build for Production
 
-### 2️⃣ Corresponding Source Definition
-
-For EKEX Intelligence, `"Corresponding Source"` includes:
-
-```
-📦 Corresponding Source Package
-├── 📁 src/                    All AGPL-3.0-licensed modules
-├── 📁 neza/                   NEZA intent engine models & weights
-├── 📁 inference/              AI inference layer code
-├── 📁 ekex/                   EKEX intelligence infrastructure
-├── 📁 api/                    REST/GraphQL endpoints
-├── 📄 docker-compose.yml      Deployment manifests
-├── 📄 Dockerfile              Container build scripts
-├── 📄 .env.example            Configuration templates
-└── 📄 docs/                   Public documentation
+```bash
+npm run build
 ```
 
----
-
-### 3️⃣ 🚫 No Proprietary Wrapper Circumvention
-
-Deploying reverse proxies, CDNs, API gateways, or middleware that obscure, modify, or intercept EKEX API requests/responses **WITHOUT** offering Corresponding Source constitutes a **direct license violation**.
-
-> Building a proprietary frontend, mobile app, or wrapper around EKEX APIs does **NOT** exempt you from source disclosure obligations for the underlying EKEX deployment.
+Entry: `src/main.jsx` -> `src/App.jsx` (router) -> pages/
 
 ---
 
-### 4️⃣ White-Label & Multi-Tenant Deployments
+## Edge Functions
 
-White-label, reseller, or multi-tenant deployments **MUST** provide source access to **ALL** end users interacting with the software, not merely the deploying entity. Each end user's interface **MUST** contain the source offer mechanism.
+All 20 backend functions are deployed as Deno serverless handlers.
+
+### Function Pattern
+
+```javascript
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
+
+Deno.serve(async (req) => {
+  const base44 = createClientFromRequest(req);
+  const user = await base44.auth.me();
+  if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  // ... logic
+});
+```
+
+### Environment Variables
+
+| Variable | Required | Used In |
+|---|---|---|
+| COMMAND_CENTER_URL | Yes | notifyCommandCenter, flagSupplierMisconduct, deliverReport |
+| RESEND_API_KEY | Yes | sendMatchEmail |
+
+> Never commit secrets. All variables are set via platform dashboard -> Settings -> Environment Variables.
 
 ---
 
-### 5️⃣ 🚫 No Commercial Sublicensing
+## Automations
 
-EKEX Intelligence is licensed under **AGPL-3.0 ONLY**. No contributor or deployer may grant proprietary sublicenses, commercial licenses, or closed-source distribution rights for any code derived from this repository.
+| Name | Type | Trigger | Function |
+|---|---|---|---|
+| Signal Router | Entity | ConsumerSignal created | routeSignalToSuppliers |
+| Supplier Notifier | Entity | ConsumerSignal created | notifySupplierOnSignal |
+| App Approved | Entity | SupplierApplication status=approved | notifyCommandCenter |
 
-**✅ Permitted Revenue Models:**
+---
 
-| Service | Description |
+## Domains
+
+| Environment | URL |
 |---|---|
-| Consulting | Architecture review, customization guidance |
-| Support | Priority technical support, SLA guarantees |
-| Hosting | Managed EKEX deployments |
-| Deployment | Installation, configuration, migration |
-
-**🚫 Prohibited:** Proprietary forks, closed-source modules, relicensing.
+| Production | [EKEXintelligence.com](https://EKEXintelligence.com) |
+| Supplier Portal | [suppliers.ekexintelligence.com](https://suppliers.ekexintelligence.com) |
 
 ---
 
-### 6️⃣ Attribution
+## AGPL-3.0 Compliance Notice
 
-All deployments **MUST** retain the following attribution in user-facing interfaces and API responses:
+This repository is free software licensed under the **GNU Affero General Public License v3.0**.
 
-```
-Powered by EKEX Intelligence — Open Intent Intelligence Infrastructure
-https://EKEXintelligence.com · Licensed under GNU AGPLv3
-```
+### Network Service Obligations
 
----
+If you deploy EKEX Intelligence as a network service (SaaS, API, bot, or any remote user interaction), you **must** offer all users the **Corresponding Source** of your deployed version, including all modifications.
 
-### 7️⃣ ⚖️ Jurisdiction
+### What This Means
 
-| Aspect | Detail |
+| Scenario | Obligation |
 |---|---|
-| **Governing Law** | Laws of Rwanda |
-| **Dispute Resolution** | Binding arbitration at Kigali International Arbitration Centre (KIAC) |
-| **Arbitration Seat** | Kigali, Rwanda |
+| Unmodified deployments | Still require source offer mechanism |
+| Modified deployments | All modifications must be released under AGPL-3.0 |
+| API wrappers & shims | Proprietary wrappers do NOT exempt source disclosure |
+| White-label deployments | Every end user interface must contain the source offer |
+
+### No Proprietary Sublicensing
+
+EKEX Intelligence is licensed under AGPL-3.0 **only**. No proprietary sublicensing, commercial licenses, or closed-source distribution rights are granted for any code in this repository. Revenue may be generated through AGPL-3.0-compliant services: consulting, support, hosting, and deployment assistance.
+
+Full license text: [LICENSE](LICENSE)
 
 ---
 
-## 📞 Contact & Source Access
+## Contributing
+
+We welcome contributions from the African developer community and global open-source ecosystem. Please read [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines and our Developer Certificate of Origin (DCO) process.
+
+### Priority Areas
+
+| Priority | Area | Impact | Skills |
+|---|---|---|---|
+| P0 | Visual intent engine accuracy | Reduce 28% "Unknown" classification rate | ML, Computer Vision |
+| P0 | End-to-end matching verification | Diagnose zero ProductMatch records | Debugging, SQL |
+| P1 | Confidence scoring calibration | Replace hardcoded intent_score | Statistics, ML |
+| P1 | Local dev environment | Reproducible setup in <30 minutes | Docker, DevOps |
+| P2 | Protocol RFCs | Architecture documentation | Technical Writing |
+
+---
+
+## Security
+
+Report vulnerabilities responsibly: [info@ekexintelligence.com](mailto:info@ekexintelligence.com)
+
+**Do NOT open public issues for security vulnerabilities.**
+
+### Security Model
+
+| Layer | Measure |
+|---|---|
+| Admin access | Identity-locked to single verified email |
+| Role hierarchy | super_admin -> operations -> supplier/producer/logistics -> user |
+| Frontend guards | useAdminGuard hook on all /admin/* routes |
+| Backend guards | Email + role check on every sensitive function |
+| Entity RLS | Per-entity create/read/update/delete policies |
+| Secrets | All API keys in Deno environment only |
+
+---
+
+## Support
 
 <div align="center">
 
-| 🌐 Official Website | 📧 All Inquiries |
-|---|---|
-| [EKEXintelligence.com](https://EKEXintelligence.com) | [info@ekexintelligence.com](mailto:info@ekexintelligence.com) |
+**Official Website:** [EKEXintelligence.com](https://EKEXintelligence.com)  
+**All Inquiries:** [info@ekexintelligence.com](mailto:info@ekexintelligence.com)
 
-**Full AGPL-3.0 text:** [www.gnu.org/licenses/agpl-3.0.html](https://www.gnu.org/licenses/agpl-3.0.html)
+</div>
+
+| Channel | Contact | Purpose |
+|---|---|---|
+| General Inquiries | [info@ekexintelligence.com](mailto:info@ekexintelligence.com) | All questions |
+| Security Issues | [info@ekexintelligence.com](mailto:info@ekexintelligence.com) | Vulnerability reports |
+| Legal Matters | [info@ekexintelligence.com](mailto:info@ekexintelligence.com) | Licensing & legal |
+| Contributors | [info@ekexintelligence.com](mailto:info@ekexintelligence.com) | Contribution questions |
+| GitHub Issues | [github.com/ekexintelligence/ekex-core/issues](https://github.com/ekexintelligence/ekex-core/issues) | Bug reports & features |
+
+---
+
+## About
+
+<div align="center">
+
+### Kimuntu Group
+
+**EKEX Intelligence** is maintained by **Kimuntu Group**, founded **16 March 2026** by **Kayembe Ilunga Eddy-Grant**.
+
+</div>
+
+### Co-Founders & Contributors
+
+| Name | Role | Status |
+|---|---|---|
+| Kayembe Ilunga Eddy-Grant | Founder and Head of the Board | Active |
+| Stephane Bilambo | Early co-founder contributor; Angel (4.5% equity, non-vesting); Consultant | Active |
+| Goetz Kisoni | Co-Founder, Board Member, and CEO | Active |
+
+<div align="center">
+
+**All Inquiries:** [info@ekexintelligence.com](mailto:info@ekexintelligence.com)  
+**Official:** [EKEXintelligence.com](https://EKEXintelligence.com)
+
+> We are not asking you to believe the white paper. We are asking you to help us make it true.  
+> -- Kimuntu Group, 2026
 
 </div>
 
@@ -160,8 +514,17 @@ https://EKEXintelligence.com · Licensed under GNU AGPLv3
 
 <div align="center">
 
-**© 2026 Kimuntu Group**  
-**Authors:** Kayembe Ilunga Eddy-Grant · Stephane Bilambo · Goetz Kisoni  
-**License:** GNU Affero General Public License v3.0
+[EKEXintelligence.com](https://EKEXintelligence.com) &middot; [Documentation](https://docs.ekexintelligence.com) &middot; [Kimuntu Group](https://kimuntugroup.com)
+
+&copy; 2026 Kimuntu Group. Licensed under GNU AGPLv3.
 
 </div>
+"""
+
+with open('/mnt/agents/output/LICENSE', 'w') as f:
+    f.write(license_content)
+
+with open('/mnt/agents/output/README.md', 'w') as f:
+    f.write(readme_content)
+
+print("Root files written: LICENSE, README.md")
