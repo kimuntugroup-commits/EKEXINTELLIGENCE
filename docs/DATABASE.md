@@ -1,5 +1,5 @@
 
-# Write DATABASE.md and DEPLOYMENT.md with actual Base44 entity model
+# DATABASE.md and DEPLOYMENT.md with actual Base44 entity model
 
 database_content = """# EKEX Intelligence -- Database Architecture
 
