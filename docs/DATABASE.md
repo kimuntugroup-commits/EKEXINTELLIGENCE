@@ -1,696 +1,689 @@
-# EKEX Intelligence — Database Schema Documentation
 
-**Version:** 1.0  
-**Date:** 2026-05-28  
-**Author:** Kimuntu Group  
-**Status:** Reference Implementation
+# Write DATABASE.md and DEPLOYMENT.md with actual Base44 entity model
 
----
-
-## Table of Contents
-
-1. [Overview](#overview)
-2. [Database Architecture](#database-architecture)
-3. [Entity Schemas](#entity-schemas)
-4. [Relationships](#relationships)
-5. [Indexing Strategy](#indexing-strategy)
-6. [Migrations](#migrations)
-7. [Data Types & Constraints](#data-types--constraints)
-
----
+database_content = """# EKEX Intelligence -- Database Architecture
 
 ## Overview
 
-EKEX Intelligence uses **PostgreSQL 14+** as the primary database with **15 entity schemas** defined from first principles. All schemas follow these principles:
-
-- **Schema-First Design**: Database structure drives system design
-- **Type Safety**: Explicit column types, constraints, and validation
-- **ACID Transactions**: Full transaction support for critical workflows
-- **Audit Trail**: All entities include `created_at` and `updated_at` timestamps
-- **Soft Deletes**: Entities use `deleted_at` for data retention compliance
+This document describes the database architecture for EKEX Intelligence. The system uses Base44 Entity Database (document-store, JSON Schema, MongoDB-style queries) as the primary data store, with Row-Level Security (RLS) enforced at the platform level per entity. A Supabase PostgreSQL mirror serves secondary analytics and reporting needs.
 
 ---
 
-## Database Architecture
+## Platform
 
-### Storage Layers
-
-```
-┌────────────────────────────────────────────────────┐
-│           PostgreSQL Primary Database               │
-│  (EKEX Intelligence Core — Public Schema)           │
-├────────────────────────────────────────────────────┤
-│                                                    │
-│  ┌──────────────────────────────────────────────┐  │
-│  │          PUBLIC SCHEMA (AGPLv3)              │  │
-│  │                                              │  │
-│  │  • Entity tables (Consumer, Supplier, etc.)  │  │
-│  │  • Signal tables (ConsumerSignal, etc.)      │  │
-│  │  • Lookup tables (Location, Category)        │  │
-│  │  • Match & Feedback tables                   │  │
-│  │  • Admin audit tables                        │  │
-│  │                                              │  │
-│  └──────────────────────────────────────────────┘  │
-│                                                    │
-│  ┌──────────────────────────────────────────────┐  │
-│  │    INDICES & FULL-TEXT SEARCH                │  │
-│  │  (Optimized for matching & analytics)        │  │
-│  └──────────────────────────────────────────────┘  │
-│                                                    │
-│  ┌──────────────────────────────────────────────┐  │
-│  │    JSONB COLUMNS (Flexible Metadata)         │  │
-│  │  (For signal attributes, custom fields)      │  │
-│  └──────────────────────────────────────────────┘  │
-│                                                    │
-└────────────────────────────────────────────────────┘
-```
-
-### Connection Details
-
-| Parameter | Value | Notes |
-|-----------|-------|-------|
-| Host | `localhost` (dev) / RDS endpoint (prod) | Set via `.env` |
-| Port | `5432` | Standard PostgreSQL port |
-| Database | `ekex_intelligence` | Main application DB |
-| Pool Size | 20 (dev) / 50 (prod) | Connection pooling |
-| SSL Mode | `disable` (dev) / `require` (prod) | Production enforces TLS |
+| Component | Technology | Type |
+|---|---|---|
+| Primary Database | Base44 Entity DB | Document-store, JSON Schema |
+| Mirror Database | Supabase | PostgreSQL |
+| Security | Base44 RLS | Per-entity policies |
 
 ---
 
-## Entity Schemas
+## Entity Map
 
-### Core User Entities
+### Supplier Domain
 
-#### **Consumer**
+| Entity | Key Fields | Notes |
+|---|---|---|
+| `Supplier` | name, slug, email, city, country, status, primary_sector | Core supplier profile |
+| `SupplierProduct` | product_name, category, price, image_url, verified_by_admin | Inventory listings |
+| `ProductVariant` | product_id, variant_name, color, size, stock_quantity | SKU-level variants |
+| `SupplierOrder` | product_id, quantity, order_status, payment_status | Order management |
+| `SupplierAnalytics` | analytic_type, supplier_id, product_name, city | Signal/revenue events |
+| `SupplierAccreditation` | supplier_id, account_type, status | Verified credentials |
+| `SupplierMention` | supplier_id, signal_id, category, city, status | Demand mentions |
 
-Represents an end-user who submits demand signals.
+### Application Domain
 
-```sql
-CREATE TABLE "Consumer" (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  phone VARCHAR(20) NOT NULL UNIQUE,
-  email VARCHAR(255) UNIQUE,
-  location_id UUID NOT NULL REFERENCES "Location"(id),
-  status ENUM('active', 'inactive', 'suspended') DEFAULT 'active',
-  verified_at TIMESTAMP,
-  last_signal_at TIMESTAMP,
-  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  deleted_at TIMESTAMP,
-  
-  CONSTRAINT valid_phone CHECK (phone ~ '^\+?[0-9]{10,15}$')
-);
+| Entity | Key Fields | Notes |
+|---|---|---|
+| `SupplierApplication` | account_type, email, business_name, status | Onboarding requests |
+| `SuperSupplierApplication` | supplier_id, requested_level, status | Tier upgrade requests |
 
-CREATE INDEX idx_consumer_phone ON "Consumer"(phone);
-CREATE INDEX idx_consumer_location ON "Consumer"(location_id);
-CREATE INDEX idx_consumer_status ON "Consumer"(status) WHERE deleted_at IS NULL;
-```
+### Consumer Domain
 
-#### **Supplier**
+| Entity | Key Fields | Notes |
+|---|---|---|
+| `ConsumerSignal` | product_description, category, location, signal_state | Raw demand signals |
+| `DissatisfactionSignal` | original_signal_id, reason, supplier_id | Return/gap signals |
+| `DemandPin` | product_name, consumer_id, intent_type, status, visibility | Pinned demand |
+| `DemandCoRequest` | original_pin_id, intent_type, co_requester_name | Group demand |
+| `DemandAlert` | -- | Market gap alerts |
 
-Represents a business/organization that provides products/services.
+### Intelligence Domain
 
-```sql
-CREATE TABLE "Supplier" (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name VARCHAR(255) NOT NULL,
-  email VARCHAR(255),
-  phone VARCHAR(20),
-  location_id UUID NOT NULL REFERENCES "Location"(id),
-  status ENUM('active', 'inactive', 'suspended') DEFAULT 'active',
-  tier ENUM('bronze', 'silver', 'gold', 'platinum') DEFAULT 'bronze',
-  verified BOOLEAN DEFAULT FALSE,
-  verified_at TIMESTAMP,
-  registration_source ENUM('web', 'telegram', 'api') DEFAULT 'web',
-  metadata JSONB DEFAULT '{}',
-  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  deleted_at TIMESTAMP
-);
+| Entity | Key Fields | Notes |
+|---|---|---|
+| `ProductMatch` | consumer_signal_id, match_count, top_3_shown_json | AI match results |
+| `IntelligenceDelivery` | consumer_email, delivery_status, resend_message_id | Email delivery log |
+| `IntelligenceReport` | user_email, product_query, full_content, credit_type | Saved reports |
+| `DemandConnectionRequest` | demand_pin_id, supplier_id, consumer_id, status | Supplier <-> consumer |
 
-CREATE INDEX idx_supplier_location ON "Supplier"(location_id);
-CREATE INDEX idx_supplier_status ON "Supplier"(status) WHERE deleted_at IS NULL;
-CREATE INDEX idx_supplier_tier ON "Supplier"(tier);
-CREATE INDEX idx_supplier_verified ON "Supplier"(verified);
-```
+### Credits & Payments
 
----
+| Entity | Key Fields | Notes |
+|---|---|---|
+| `UserCredit` | user_email, free_reports_used, paid_credits_remaining | Credit ledger |
+| `PurchaseRequest` | user_email, pack_name, price_usd, status | Payment intent log |
+| `CreditPack` | name, report_count, price_usd, is_active | Pack catalog |
 
-### Signal & Demand Entities
+### Logistics
 
-#### **ConsumerSignal** (Layer 1)
-
-Raw demand signal submitted by consumer through any channel (web, Telegram, API).
-
-```sql
-CREATE TABLE "ConsumerSignal" (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  consumer_id UUID NOT NULL REFERENCES "Consumer"(id),
-  description TEXT NOT NULL,
-  category_id UUID REFERENCES "Category"(id),
-  location_id UUID NOT NULL REFERENCES "Location"(id),
-  signal_state ENUM(
-    'submitted',
-    'duplicate_pending',
-    'deduplicated',
-    'valid',
-    'flooded',
-    'processed'
-  ) DEFAULT 'submitted',
-  source ENUM('web', 'telegram', 'api', 'ussd') DEFAULT 'web',
-  source_metadata JSONB DEFAULT '{}',
-  
-  -- Deduplication tracking (Layer 1, Gates A-E)
-  gate_result ENUM(
-    'gate_a_technical_duplicate',
-    'gate_b_return_after_match',
-    'gate_c_genuine_submission',
-    'gate_d_velocity_flood',
-    'gate_e_default_pass'
-  ),
-  duplicate_of_signal_id UUID REFERENCES "ConsumerSignal"(id),
-  
-  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  deleted_at TIMESTAMP
-);
-
-CREATE INDEX idx_consumer_signal_consumer ON "ConsumerSignal"(consumer_id);
-CREATE INDEX idx_consumer_signal_category ON "ConsumerSignal"(category_id);
-CREATE INDEX idx_consumer_signal_location ON "ConsumerSignal"(location_id);
-CREATE INDEX idx_consumer_signal_state ON "ConsumerSignal"(signal_state);
-CREATE INDEX idx_consumer_signal_source ON "ConsumerSignal"(source);
-CREATE INDEX idx_consumer_signal_created ON "ConsumerSignal"(created_at DESC);
-```
-
-#### **DemandObject** (Layer 2)
-
-Structured, normalized representation of consumer demand after processing.
-
-```sql
-CREATE TABLE "DemandObject" (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  consumer_signal_id UUID NOT NULL UNIQUE REFERENCES "ConsumerSignal"(id),
-  category_id UUID NOT NULL REFERENCES "Category"(id),
-  location_id UUID NOT NULL REFERENCES "Location"(id),
-  
-  -- Normalized fields
-  description_normalized TEXT NOT NULL,
-  quantity_min INT,
-  quantity_max INT,
-  price_min DECIMAL(12, 2),
-  price_max DECIMAL(12, 2),
-  
-  -- Scoring & confidence
-  intent_score DECIMAL(3, 2) DEFAULT 0.5,  -- 0-1 confidence (TODO: implement real scoring)
-  reliability_source DECIMAL(3, 2) DEFAULT 0.5,  -- Source trust metric
-  
-  -- Metadata
-  quality_indicators JSONB DEFAULT '{}',  -- Custom quality flags
-  
-  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  deleted_at TIMESTAMP
-);
-
-CREATE INDEX idx_demand_category ON "DemandObject"(category_id);
-CREATE INDEX idx_demand_location ON "DemandObject"(location_id);
-CREATE INDEX idx_demand_intent_score ON "DemandObject"(intent_score DESC);
-```
-
-#### **SupplyObject** (Layer 2)
-
-Structured representation of supplier product/service capability.
-
-```sql
-CREATE TABLE "SupplyObject" (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  supplier_product_id UUID NOT NULL UNIQUE REFERENCES "SupplierProduct"(id),
-  category_id UUID NOT NULL REFERENCES "Category"(id),
-  location_id UUID NOT NULL REFERENCES "Location"(id),
-  
-  -- Product details (normalized)
-  name_normalized VARCHAR(255) NOT NULL,
-  quantity_available INT,
-  price DECIMAL(12, 2),
-  quality_tier ENUM('basic', 'standard', 'premium', 'luxury') DEFAULT 'standard',
-  availability ENUM('in_stock', 'limited', 'backorder', 'discontinued') DEFAULT 'in_stock',
-  lead_time_days INT,
-  
-  -- Supplier reliability
-  supplier_reliability_score DECIMAL(3, 2) DEFAULT 0.5,  -- 0-1 score
-  fulfillment_rate DECIMAL(3, 2),  -- Based on historical matching
-  
-  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  deleted_at TIMESTAMP
-);
-
-CREATE INDEX idx_supply_category ON "SupplyObject"(category_id);
-CREATE INDEX idx_supply_location ON "SupplyObject"(location_id);
-CREATE INDEX idx_supply_availability ON "SupplyObject"(availability);
-```
+| Entity | Key Fields | Notes |
+|---|---|---|
+| `DeliveryRoute` | -- | Logistics route data |
+| `ProcurementRequest` | -- | B2B procurement |
+| `SupplierLogisticsLink` | -- | Supplier <-> logistics mapping |
 
 ---
 
-### Matching Entities
+## Entity Specifications
 
-#### **ProductMatch** (Layer 3)
+### ConsumerSignal
 
-Result of matching a DemandObject to a SupplyObject. **⚠️ Currently: 0 records (matching engine not yet firing successfully)**
+Primary demand capture entity. Stores raw consumer intent.
 
-```sql
-CREATE TABLE "ProductMatch" (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  demand_object_id UUID NOT NULL REFERENCES "DemandObject"(id),
-  supply_object_id UUID NOT NULL REFERENCES "SupplyObject"(id),
-  
-  -- Match classification
-  match_type ENUM('direct', 'partial', 'inferred') NOT NULL,
-  similarity_score DECIMAL(3, 2) NOT NULL,  -- 0-1 semantic match
-  location_score DECIMAL(3, 2) NOT NULL,    -- 0-1 geographic match
-  temporal_score DECIMAL(3, 2) NOT NULL,    -- 0-1 time relevance
-  reliability_score DECIMAL(3, 2) NOT NULL, -- 0-1 supplier history
-  
-  -- Final ranking
-  overall_score DECIMAL(3, 2) GENERATED ALWAYS AS (
-    (similarity_score * 0.4 + location_score * 0.2 + 
-     temporal_score * 0.2 + reliability_score * 0.2)
-  ) STORED,
-  
-  -- Match metadata
-  matching_engine_version VARCHAR(20),
-  matching_algorithm ENUM('base44_ai', 'semantic', 'hybrid'),
-  
-  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  deleted_at TIMESTAMP
-);
+| Field | Type | Required | Description |
+|---|---|---|---|
+| id | string (auto) | Yes | Unique identifier |
+| product_description | string | Yes | Free-text demand description |
+| category | string | Yes | Product category classification |
+| location | string | Yes | City/country of demand |
+| signal_state | string | Yes | pending, matched, unmet, fulfilled, expired |
+| image_url | string | No | Uploaded product image reference |
+| urgency | string | No | low, medium, high, critical |
+| created_by | string (auto) | Yes | Email of creating user |
+| created_date | datetime (auto) | Yes | ISO timestamp |
+| updated_date | datetime (auto) | Yes | Last modification |
 
-CREATE INDEX idx_product_match_demand ON "ProductMatch"(demand_object_id);
-CREATE INDEX idx_product_match_supply ON "ProductMatch"(supply_object_id);
-CREATE INDEX idx_product_match_overall_score ON "ProductMatch"(overall_score DESC);
-CREATE INDEX idx_product_match_created ON "ProductMatch"(created_at DESC);
+**Automations:**
+- On create: `routeSignalToSuppliers.js`
+- On create: `notifySupplierOnSignal.js`
+- On create: `runProductMatching.js`
+- On create: `syncSignalToSupabase.js`
+
+### Supplier
+
+Core supplier profile entity.
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| id | string (auto) | Yes | Unique identifier |
+| name | string | Yes | Business name |
+| slug | string | Yes | URL-friendly identifier |
+| email | string | Yes | Primary contact email |
+| city | string | Yes | Business city |
+| country | string | Yes | ISO country code |
+| status | string | Yes | pending, active, suspended, rejected |
+| primary_sector | string | Yes | Main product category |
+| performance_score | number | No | Historical fulfillment score |
+| created_by | string (auto) | Yes | Email of creating user |
+| created_date | datetime (auto) | Yes | ISO timestamp |
+| updated_date | datetime (auto) | Yes | Last modification |
+
+### SupplierProduct
+
+Inventory listing entity.
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| id | string (auto) | Yes | Unique identifier |
+| product_name | string | Yes | Product name |
+| category | string | Yes | Product category |
+| price | number | Yes | Unit price |
+| image_url | string | No | Product image reference |
+| verified_by_admin | boolean | No | Admin verification status |
+| supplier_id | reference | Yes | Parent Supplier |
+| created_by | string (auto) | Yes | Email of creating user |
+| created_date | datetime (auto) | Yes | ISO timestamp |
+| updated_date | datetime (auto) | Yes | Last modification |
+
+### ProductMatch
+
+AI-generated match results.
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| id | string (auto) | Yes | Unique identifier |
+| consumer_signal_id | reference | Yes | Source ConsumerSignal |
+| match_count | number | Yes | Total matches found |
+| top_3_shown_json | json | Yes | JSON array of top 3 matches |
+| similarity_scores | json | No | Per-match scores (0-100) |
+| created_by | string (auto) | Yes | Email of creating user |
+| created_date | datetime (auto) | Yes | ISO timestamp |
+| updated_date | datetime (auto) | Yes | Last modification |
+
+**Note:** As of current deployment, this entity has zero records due to an unresolved matching engine issue (see CONTRIBUTING.md Tier 1.2).
+
+### UserCredit
+
+Credit ledger for report access.
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| id | string (auto) | Yes | Unique identifier |
+| user_email | string | Yes | User identifier |
+| free_reports_used | number | Yes | Count of used free reports |
+| paid_credits_remaining | number | Yes | Remaining paid credits |
+| created_by | string (auto) | Yes | Email of creating user |
+| created_date | datetime (auto) | Yes | ISO timestamp |
+| updated_date | datetime (auto) | Yes | Last modification |
+
+---
+
+## RLS Policy Pattern
+
+All 23 entities follow this ownership + role-escalation pattern.
+
+### Example: SupplierProduct
+
+```
+CREATE: role IN [supplier, producer, super_admin, operations]
+READ:   created_by == user.email OR role IN [super_admin, operations]
+UPDATE: created_by == user.email OR role IN [super_admin, operations]
+DELETE: created_by == user.email OR role == super_admin
 ```
 
-#### **MatchHistory**
+### Role Hierarchy
 
-Audit log for all match state changes.
+```
+super_admin
+    |
+    v
+operations
+    |
+    v
+supplier / producer / logistics
+    |
+    v
+user
+```
 
-```sql
-CREATE TABLE "MatchHistory" (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  product_match_id UUID NOT NULL REFERENCES "ProductMatch"(id),
-  
-  action ENUM(
-    'created',
-    'score_updated',
-    'status_changed',
-    'consumer_notified',
-    'supplier_notified',
-    'closed'
-  ) NOT NULL,
-  
-  actor_type ENUM('system', 'admin', 'consumer', 'supplier') DEFAULT 'system',
-  actor_id UUID,
-  
-  old_values JSONB,
-  new_values JSONB,
-  
-  timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
+### Role Permissions Matrix
 
-CREATE INDEX idx_match_history_match ON "MatchHistory"(product_match_id);
-CREATE INDEX idx_match_history_action ON "MatchHistory"(action);
-CREATE INDEX idx_match_history_timestamp ON "MatchHistory"(timestamp DESC);
+| Role | Create | Read | Update | Delete | Admin |
+|---|---|---|---|---|---|
+| super_admin | All | All | All | All | Yes |
+| operations | Most | All | Most | Limited | No |
+| supplier | Own | Own + Public | Own | Own | No |
+| producer | Own | Own + Public | Own | Own | No |
+| logistics | Routes | Routes + Public | Routes | Routes | No |
+| user | Consumer entities | Public + Own | Own | Own | No |
+
+---
+
+## Built-in Fields (All Entities)
+
+| Field | Type | Auto-generated | Description |
+|---|---|---|---|
+| `id` | string | Yes | Unique identifier |
+| `created_date` | ISO datetime | Yes | Creation timestamp |
+| `updated_date` | ISO datetime | Yes | Last modification timestamp |
+| `created_by` | string (email) | Yes | Email of creating user |
+
+---
+
+## Supabase Mirror Schema
+
+The Supabase mirror replicates select entities for analytics and reporting.
+
+| Mirrored Entity | Sync Trigger | Purpose |
+|---|---|---|
+| ConsumerSignal | On create | Analytics, trend detection |
+| Supplier | On update | Directory search |
+| SupplierProduct | On update | Inventory analytics |
+| ProductMatch | On create | Match quality reporting |
+| SupplierAnalytics | On create | Revenue reporting |
+
+### Sync Function
+
+```javascript
+// syncSignalToSupabase.js
+Deno.serve(async (req) => {
+  const base44 = createClientFromRequest(req);
+  const { signal } = await req.json();
+  
+  // Sync to Supabase
+  const supabase = createClient(Deno.env.get('SUPABASE_URL'), Deno.env.get('SUPABASE_KEY'));
+  await supabase.from('consumer_signals').insert(signal);
+  
+  return Response.json({ synced: true });
+});
 ```
 
 ---
 
-### Gap Detection Entities
+## Data Retention
 
-#### **MarketGapAlert** (Layer 4)
-
-Alert generated when unmet demand is detected.
-
-```sql
-CREATE TABLE "MarketGapAlert" (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  consumer_signal_id UUID NOT NULL REFERENCES "ConsumerSignal"(id),
-  
-  gap_type ENUM('unmet_demand', 'underserved', 'emerging') NOT NULL,
-  severity ENUM('low', 'medium', 'high', 'critical') DEFAULT 'medium',
-  
-  -- Geographic scope
-  location_id UUID NOT NULL REFERENCES "Location"(id),
-  
-  -- Assignment & tracking
-  assigned_to UUID REFERENCES "AdminUser"(id),
-  status ENUM('open', 'investigating', 'resolved', 'wontfix') DEFAULT 'open',
-  
-  -- Incentivization
-  bounty_amount DECIMAL(10, 2),
-  contributor_recruited BOOLEAN DEFAULT FALSE,
-  
-  metadata JSONB DEFAULT '{}',
-  
-  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  resolved_at TIMESTAMP,
-  deleted_at TIMESTAMP
-);
-
-CREATE INDEX idx_gap_alert_location ON "MarketGapAlert"(location_id);
-CREATE INDEX idx_gap_alert_gap_type ON "MarketGapAlert"(gap_type);
-CREATE INDEX idx_gap_alert_status ON "MarketGapAlert"(status);
-CREATE INDEX idx_gap_alert_created ON "MarketGapAlert"(created_at DESC);
-```
+| Data Type | Retention Period | Action |
+|---|---|---|
+| ConsumerSignal raw payloads | 90 days | Archive to file storage |
+| ProductMatch results | 2 years | Aggregate after 1 year |
+| SupplierAnalytics events | 2 years | Aggregate after 1 year |
+| IntelligenceDelivery logs | 1 year | Delete after retention |
+| PurchaseRequest records | 7 years | Legal compliance |
+| Session data | 24 hours | Auto-expire (client-side) |
 
 ---
 
-### Feedback Entities
+## Performance Notes
 
-#### **DissatisfactionSignal** (Layer 5)
+### Known Issues
 
-Signal indicating consumer dissatisfaction with a match.
+| Issue | Entity | Impact | Status |
+|---|---|---|---|
+| ProductMatch zero records | ProductMatch | Matching engine non-functional | Investigating |
+| Missing composite queries | ConsumerSignal | Slow category+location filters | Planned |
+| Unmet demand clustering | DemandAlert | Slow gap detection | Planned |
 
-```sql
-CREATE TABLE "DissatisfactionSignal" (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  product_match_id UUID NOT NULL REFERENCES "ProductMatch"(id),
-  consumer_id UUID NOT NULL REFERENCES "Consumer"(id),
-  
-  reason ENUM(
-    'return_quality_issue',
-    'return_wrong_product',
-    'return_damaged',
-    'undelivered',
-    'delayed_delivery',
-    'price_mismatch',
-    'other'
-  ) NOT NULL,
-  
-  severity ENUM('minor', 'moderate', 'severe') DEFAULT 'moderate',
-  details TEXT,
-  
-  -- Learning impact
-  impact_on_supplier BOOLEAN DEFAULT FALSE,
-  impact_on_category BOOLEAN DEFAULT FALSE,
-  
-  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  deleted_at TIMESTAMP
-);
+### Query Optimization
 
-CREATE INDEX idx_dissatisfaction_match ON "DissatisfactionSignal"(product_match_id);
-CREATE INDEX idx_dissatisfaction_consumer ON "DissatisfactionSignal"(consumer_id);
-CREATE INDEX idx_dissatisfaction_reason ON "DissatisfactionSignal"(reason);
-```
-
-#### **FeedbackLoop**
-
-Tracks confidence score adjustments and system learning.
-
-```sql
-CREATE TABLE "FeedbackLoop" (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  
-  entity_type ENUM('supplier', 'consumer', 'category', 'location') NOT NULL,
-  entity_id UUID NOT NULL,
-  
-  feedback_type ENUM(
-    'temporal_decay',
-    'confidence_adjustment',
-    'reliability_update',
-    'fulfillment_rate_change'
-  ) NOT NULL,
-  
-  score_delta DECIMAL(3, 2),  -- Change in score
-  old_score DECIMAL(3, 2),
-  new_score DECIMAL(3, 2),
-  
-  reason_dissatisfaction_signal_id UUID REFERENCES "DissatisfactionSignal"(id),
-  
-  applied_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX idx_feedback_loop_entity ON "FeedbackLoop"(entity_type, entity_id);
-CREATE INDEX idx_feedback_loop_feedback_type ON "FeedbackLoop"(feedback_type);
-```
+1. Always include `signal_state` filter in ConsumerSignal queries (high cardinality)
+2. Use `category` + `location` composite filters where possible
+3. Prefer exact `city` matches over partial `location` text search
+4. Index `supplier_id` references for join performance
+5. Use `created_date` DESC for recent-first listings
 
 ---
 
-### Lookup Tables
+## Related Documentation
 
-#### **Category**
-
-Product/service categories with hierarchical support.
-
-```sql
-CREATE TABLE "Category" (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name VARCHAR(100) NOT NULL UNIQUE,
-  description TEXT,
-  parent_id UUID REFERENCES "Category"(id),
-  
-  -- Metadata
-  is_featured BOOLEAN DEFAULT FALSE,
-  unknown_rate DECIMAL(3, 2) DEFAULT 0.28,  -- TODO: Reduce from 28% to <5%
-  
-  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX idx_category_parent ON "Category"(parent_id);
-CREATE INDEX idx_category_featured ON "Category"(is_featured) WHERE is_featured = true;
-```
-
-#### **Location**
-
-Geographic locations with standardization.
-
-```sql
-CREATE TABLE "Location" (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  city VARCHAR(100) NOT NULL,
-  country VARCHAR(100) NOT NULL,
-  
-  -- Coordinates
-  latitude DECIMAL(10, 8),
-  longitude DECIMAL(11, 8),
-  
-  -- Metadata
-  is_featured BOOLEAN DEFAULT FALSE,
-  region VARCHAR(100),
-  timezone VARCHAR(50),
-  
-  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  
-  CONSTRAINT unique_location UNIQUE(city, country)
-);
-
-CREATE INDEX idx_location_city ON "Location"(city);
-CREATE INDEX idx_location_country ON "Location"(country);
-CREATE INDEX idx_location_featured ON "Location"(is_featured) WHERE is_featured = true;
-CREATE INDEX idx_location_geo ON "Location" USING GIST(
-  ll_to_earth(latitude, longitude)
-) WHERE latitude IS NOT NULL AND longitude IS NOT NULL;
-```
-
----
-
-### Admin Entities
-
-#### **AdminUser**
-
-Platform administrators with role-based access.
-
-```sql
-CREATE TABLE "AdminUser" (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  email VARCHAR(255) NOT NULL UNIQUE,
-  password_hash VARCHAR(255) NOT NULL,
-  
-  role ENUM('superadmin', 'admin', 'moderator', 'analyst') DEFAULT 'admin',
-  permissions JSONB DEFAULT '{}',
-  
-  last_login TIMESTAMP,
-  last_login_ip INET,
-  
-  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  deleted_at TIMESTAMP
-);
-
-CREATE INDEX idx_admin_email ON "AdminUser"(email);
-CREATE INDEX idx_admin_role ON "AdminUser"(role);
-```
-
-#### **SupplierProduct**
-
-Products offered by suppliers (intermediate table for many-to-many).
-
-```sql
-CREATE TABLE "SupplierProduct" (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  supplier_id UUID NOT NULL REFERENCES "Supplier"(id),
-  category_id UUID NOT NULL REFERENCES "Category"(id),
-  
-  name VARCHAR(255) NOT NULL,
-  description TEXT,
-  price_range_min DECIMAL(12, 2),
-  price_range_max DECIMAL(12, 2),
-  
-  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  deleted_at TIMESTAMP,
-  
-  CONSTRAINT unique_supplier_product UNIQUE(supplier_id, category_id, name)
-);
-
-CREATE INDEX idx_supplier_product_supplier ON "SupplierProduct"(supplier_id);
-CREATE INDEX idx_supplier_product_category ON "SupplierProduct"(category_id);
-```
-
----
-
-## Relationships
-
-### Core Flow
-
-```
-Consumer (1) ──→ (M) ConsumerSignal
-              ──→ (M) DemandObject (via Signal)
-              
-Supplier (1) ──→ (M) SupplierProduct
-              ──→ (M) SupplyObject (via Product)
-
-DemandObject (M) ──→ (M) SupplyObject : ProductMatch (Junction)
-
-ProductMatch (1) ──→ (M) MatchHistory
-               ──→ (M) DissatisfactionSignal
-               
-DissatisfactionSignal (M) ──→ (1) FeedbackLoop
-```
-
----
-
-## Indexing Strategy
-
-### Primary Performance Indexes
-
-| Table | Index | Columns | Purpose |
-|-------|-------|---------|---------|
-| ConsumerSignal | idx_consumer_signal_state | signal_state | Find signals by status |
-| DemandObject | idx_demand_intent_score | intent_score DESC | Rank by confidence |
-| SupplyObject | idx_supply_location | location_id | Geographic queries |
-| ProductMatch | idx_product_match_overall_score | overall_score DESC | Best matches first |
-| MarketGapAlert | idx_gap_alert_location + gap_type | location_id, gap_type | Gap detection analysis |
-
-### Full-Text Search
-
-For signal descriptions and product names:
-
-```sql
--- Add GIN indexes for full-text search
-CREATE INDEX idx_consumer_signal_search ON "ConsumerSignal" 
-  USING GIN(to_tsvector('english', description));
-
-CREATE INDEX idx_supplier_product_search ON "SupplierProduct"
-  USING GIN(to_tsvector('english', name || ' ' || COALESCE(description, '')));
-```
-
----
-
-## Migrations
-
-### Migration Workflow
-
-```bash
-# Generate new migration
-npm run db:create-migration -- --name <migration_name>
-
-# Run pending migrations
-npm run db:migrate
-
-# Rollback last migration
-npm run db:migrate:rollback
-
-# Reset database (dev only)
-npm run db:reset
-```
-
-### Schema Versioning
-
-Migrations follow semantic versioning:
-- Format: `YYYYMMDD_HHmmss_<description>.sql`
-- Example: `20260528_143000_add_consumer_signal_gates.sql`
-
----
-
-## Data Types & Constraints
-
-### Enums
-
-All enum columns use PostgreSQL native ENUM types for consistency:
-
-```sql
--- Signal states
-CREATE TYPE signal_state AS ENUM(
-  'submitted', 'duplicate_pending', 'deduplicated', 'valid', 'flooded', 'processed'
-);
-
--- Match types
-CREATE TYPE match_type AS ENUM('direct', 'partial', 'inferred');
-
--- Gap types
-CREATE TYPE gap_type AS ENUM('unmet_demand', 'underserved', 'emerging');
-```
-
-### Constraints
-
-| Constraint | Purpose |
-|-----------|---------|
-| NOT NULL | Enforce data completeness |
-| UNIQUE | Prevent duplicates (phone, email, etc.) |
-| FOREIGN KEY | Maintain referential integrity |
-| CHECK | Validate domain constraints (phone format, scores 0-1) |
-| DEFAULT | Set sensible defaults for new records |
-
-### Decimal Precision
-
-Scores use `DECIMAL(3, 2)` for accuracy:
-- Range: 0.00 to 1.00
-- Precision: 2 decimal places
-- Example: `0.85` = 85% confidence
-
----
-
-## Appendix: Quick Reference
-
-### Connection String
-
-```
-postgresql://user:password@localhost:5432/ekex_intelligence
-```
-
-### Total Tables
-
-- **Core Entities**: Consumer, Supplier, AdminUser
-- **Signals**: ConsumerSignal, DemandObject, SupplyObject, SupplierProduct
-- **Matching**: ProductMatch, MatchHistory
-- **Gap Detection**: MarketGapAlert
-- **Feedback**: DissatisfactionSignal, FeedbackLoop
-- **Lookup**: Category, Location
-
-**Total: 15 entity schemas** ✓
+- [ARCHITECTURE.md](ARCHITECTURE.md) -- System architecture and component specifications
+- [DEPLOYMENT.md](DEPLOYMENT.md) -- Deployment and environment setup
+- [API Reference](https://api.ekexintelligence.com) -- Interactive API documentation
 
 ---
 
 <div align="center">
 
-**[← Back to README](../README.md)** · **[Architecture Documentation](./ARCHITECTURE.md)**
+&copy; 2026 Kimuntu Group &middot; EKEX Intelligence &middot; Licensed under GNU AGPLv3
 
-*© 2026 Kimuntu Group · EKEX Intelligence*
+[EKEXintelligence.com](https://EKEXintelligence.com) &middot; [Documentation](https://docs.ekexintelligence.com)
+
+All Inquiries: [info@ekexintelligence.com](mailto:info@ekexintelligence.com)
 
 </div>
+"""
+
+deployment_content = """# EKEX Intelligence -- Deployment Guide
+
+## Overview
+
+This document provides deployment instructions for EKEX Intelligence. The system is built on the Base44 platform with Deno Deploy Edge Functions, using Vite + React 18 for the frontend.
+
+---
+
+## Table of Contents
+
+- [Infrastructure Overview](#infrastructure-overview)
+- [Prerequisites](#prerequisites)
+- [Frontend Deployment](#frontend-deployment)
+- [Edge Functions Deployment](#edge-functions-deployment)
+- [Environment Variables](#environment-variables)
+- [Automations Setup](#automations-setup)
+- [Domains](#domains)
+- [Roles & Access](#roles--access)
+- [Monitoring](#monitoring)
+- [Troubleshooting](#troubleshooting)
+
+---
+
+## Infrastructure Overview
+
+| Layer | Platform | Type |
+|---|---|---|
+| Frontend SPA | Base44 Platform | Managed hosting |
+| Edge Functions | Deno Deploy | Serverless / edge |
+| Database | Base44 Entity DB | Managed BaaS |
+| Email | Resend | Transactional SaaS |
+| Secondary DB | Supabase | Postgres mirror |
+| Notifications | Command Center | Internal microservice |
+
+---
+
+## Prerequisites
+
+### Required Software
+
+| Software | Version | Purpose |
+|---|---|---|
+| Node.js | 18.x LTS | Frontend development |
+| npm | 9+ | Package management |
+| Deno | 1.40+ | Edge Function development |
+| Git | 2.40+ | Source control |
+
+### Base44 Platform Access
+
+1. Create account at [base44.com](https://base44.com)
+2. Create new project "ekex-intelligence"
+3. Configure project settings
+
+---
+
+## Frontend Deployment
+
+Built with **Vite + React 18**. Deployed automatically via Base44 platform.
+
+### Local Development
+
+```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+```
+
+Frontend runs at http://localhost:5173
+
+### Production Build
+
+```bash
+# Production build (handled by platform)
+npm run build
+```
+
+Entry: `src/main.jsx` -> `src/App.jsx` (router) -> pages/
+
+### Build Output
+
+| File | Purpose |
+|---|---|
+| `src/main.jsx` | Application entry point |
+| `src/App.jsx` | React Router v6 configuration |
+| `src/pages/` | Route-level page components |
+| `src/components/` | Reusable UI components |
+| `src/hooks/` | Custom React hooks |
+| `src/lib/` | Utility functions, SDK clients |
+
+---
+
+## Edge Functions Deployment
+
+All 20 backend functions are deployed as Deno serverless handlers.
+
+### Function Directory
+
+```
+functions/
+|-- activateSupplierAccount.js
+|-- adminGetAllProducts.js
+|-- analyzeImage.js
+|-- checkDuplicateAccount.js
+|-- checkUserCredits.js
+|-- consumeCredit.js
+|-- createSupplierAccreditation.js
+|-- deliverReport.js
+|-- fetchProductGallery.js
+|-- findSuppliersByProduct.js
+|-- flagSupplierMisconduct.js
+|-- notifyCommandCenter.js
+|-- notifySupplierOnSignal.js
+|-- onSupplierApplicationCreated.js
+|-- processSupplierTag.js
+|-- requestCreditPack.js
+|-- routeSignalToSuppliers.js
+|-- runProductMatching.js
+|-- sendMatchEmail.js
+|-- syncSignalToSupabase.js
+```
+
+### Function Pattern
+
+```javascript
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
+
+Deno.serve(async (req) => {
+  const base44 = createClientFromRequest(req);
+  const user = await base44.auth.me();
+  if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  // ... business logic
+});
+```
+
+### Deploy to Deno Deploy
+
+```bash
+# Install deployctl
+npm install -g deployctl
+
+# Deploy all functions
+deployctl deploy --project=ekex-intelligence --include=functions/
+
+# Deploy single function
+deployctl deploy --project=ekex-intelligence --include=functions/analyzeImage.js
+```
+
+---
+
+## Environment Variables
+
+> Never commit secrets. All variables are set via platform dashboard -> Settings -> Environment Variables.
+
+### Required Variables
+
+| Variable | Used In | Description |
+|---|---|---|
+| `COMMAND_CENTER_URL` | notifyCommandCenter, flagSupplierMisconduct, deliverReport | Internal webhook endpoint |
+| `RESEND_API_KEY` | sendMatchEmail | Resend email API key |
+
+### Optional Variables
+
+| Variable | Used In | Description |
+|---|---|---|
+| `SUPABASE_URL` | syncSignalToSupabase | Supabase project URL |
+| `SUPABASE_KEY` | syncSignalToSupabase | Supabase service role key |
+| `OPENAI_API_KEY` | analyzeImage, runProductMatching | LLM provider key |
+| `TELEGRAM_BOT_TOKEN` | notifySupplierOnSignal | NEZA Telegram bot token |
+| `WHATSAPP_API_KEY` | notifySupplierOnSignal | WhatsApp Business API key |
+
+### Local Development
+
+```bash
+# Create local environment file
+cp .env.example .env.local
+
+# Edit with your values
+nano .env.local
+```
+
+---
+
+## Automations Setup
+
+Automations are entity-triggered or scheduled workflows configured in the Base44 dashboard.
+
+### Required Automations
+
+| Name | Type | Trigger | Function | Status |
+|---|---|---|---|---|
+| Signal Router | Entity | ConsumerSignal created | routeSignalToSuppliers | Required |
+| Supplier Notifier | Entity | ConsumerSignal created | notifySupplierOnSignal | Required |
+| App Approved | Entity | SupplierApplication status=approved | notifyCommandCenter | Required |
+
+### Automation Configuration
+
+1. Navigate to Base44 Dashboard -> Automations
+2. Create new automation
+3. Select trigger type (Entity or Scheduled)
+4. Configure trigger conditions
+5. Select target Edge Function
+6. Save and activate
+
+---
+
+## Domains
+
+| Environment | URL | Status |
+|---|---|---|
+| Production | [EKEXintelligence.com](https://EKEXintelligence.com) | Live |
+| Supplier Portal | [suppliers.ekexintelligence.com](https://suppliers.ekexintelligence.com) | Live |
+| API | [api.ekexintelligence.com](https://api.ekexintelligence.com) | Live |
+
+### Domain Configuration
+
+1. Register domain with DNS provider
+2. Add A/AAAA records pointing to Base44
+3. Configure SSL certificate (auto-provisioned by Base44)
+4. Set custom domain in Base44 Dashboard
+
+---
+
+## Roles & Access
+
+| Role | Access Level | Description |
+|---|---|---|
+| super_admin | Full system access | Platform administrators |
+| operations | Read/write most entities | Operations team |
+| supplier | Own products, orders, analytics | Verified suppliers |
+| producer | Same as supplier | Product manufacturers |
+| logistics | Routes, delivery data | Logistics partners |
+| user | Consumer features only | End consumers |
+
+### Admin Portal
+
+- URL: `/admin/*`
+- Guard: `useAdminGuard` hook
+- Additional lock: Identity-verified email
+- Full access to all 23 entities
+
+### Supplier Portal
+
+- URL: `/supplier/*`
+- Guard: Role check (supplier, producer)
+- Access: Own products, orders, analytics
+
+---
+
+## Monitoring
+
+### Base44 Dashboard
+
+| Metric | Location | Alert |
+|---|---|---|
+| Entity operations | Dashboard -> Analytics | > 1000 ops/min |
+| Edge Function invocations | Dashboard -> Functions | Error rate > 1% |
+| Active users | Dashboard -> Analytics | Anomaly detection |
+
+### Deno Deploy Dashboard
+
+| Metric | Location | Alert |
+|---|---|---|
+| Function latency | Metrics | p95 > 500ms |
+| Error rate | Logs | > 1% |
+| Cold starts | Metrics | > 2s |
+
+### Resend Dashboard
+
+| Metric | Location | Alert |
+|---|---|---|
+| Delivery rate | Dashboard | < 95% |
+| Bounce rate | Dashboard | > 5% |
+| Open rate | Dashboard | Tracking |
+
+### Health Check
+
+```bash
+GET /api/v1/health
+
+Response:
+{
+  "status": "healthy",
+  "version": "1.0.0",
+  "timestamp": "2026-05-29T03:59:00Z",
+  "services": {
+    "base44": "connected",
+    "deno_deploy": "connected",
+    "resend": "connected"
+  }
+}
+```
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+| Symptom | Cause | Solution |
+|---|---|---|
+| Build fails | Node version mismatch | Use Node 18.x LTS |
+| Edge Function 401 | Missing auth | Verify base44.auth.me() |
+| Email not sending | Invalid Resend key | Check RESEND_API_KEY |
+| Automation not firing | Wrong trigger | Verify entity type and conditions |
+| RLS denied | Role mismatch | Check user role and entity policies |
+| Slow queries | Missing filters | Always include state/status filters |
+
+### Log Locations
+
+| Component | Location | Access |
+|---|---|---|
+| Frontend | Browser console | Client-side |
+| Edge Functions | Deno Deploy logs | Dashboard |
+| Automations | Base44 automation logs | Dashboard |
+| Database | Base44 entity logs | Dashboard |
+
+### Debug Mode
+
+```bash
+# Enable verbose logging
+LOG_LEVEL=debug npm run dev
+
+# Test Edge Function locally
+deno run --allow-net --allow-env functions/analyzeImage.js
+
+# Inspect Base44 entities
+# Use Base44 Dashboard -> Data -> Entities
+```
+
+---
+
+## Related Documentation
+
+- [ARCHITECTURE.md](ARCHITECTURE.md) -- System architecture and component specifications
+- [DATABASE.md](DATABASE.md) -- Entity schemas and RLS policies
+- [API Reference](https://api.ekexintelligence.com) -- Interactive API documentation
+
+---
+
+<div align="center">
+
+&copy; 2026 Kimuntu Group &middot; EKEX Intelligence &middot; Licensed under GNU AGPLv3
+
+[EKEXintelligence.com](https://EKEXintelligence.com) &middot; [Documentation](https://docs.ekexintelligence.com)
+
+All Inquiries: [info@ekexintelligence.com](mailto:info@ekexintelligence.com)
+
+</div>
+"""
+
+with open('/mnt/agents/output/docs/DATABASE.md', 'w') as f:
+    f.write(database_content)
+
+with open('/mnt/agents/output/docs/DEPLOYMENT.md', 'w') as f:
+    f.write(deployment_content)
+
+print("Written: docs/DATABASE.md")
+print("Written: docs/DEPLOYMENT.md")
+print("\n" + "="*60)
+print("ALL 6 FILES GENERATED WITH ACTUAL BASE44/DENO ARCHITECTURE")
+print("="*60)
+print("\nRoot files:")
+print("  - LICENSE")
+print("  - README.md")
+print("  - CONTRIBUTING.md")
+print("\nDocs files:")
+print("  - docs/ARCHITECTURE.md")
+print("  - docs/DATABASE.md")
+print("  - docs/DEPLOYMENT.md")
+print("\nKey corrections from actual repo:")
+print("  - Frontend: Vite + React 18 (not Next.js)")
+print("  - Backend: Deno Deploy Edge Functions (not Node.js/Express)")
+print("  - Database: Base44 Entity DB (not PostgreSQL primary)")
+print("  - 20 Edge Functions documented with actual names")
+print("  - AI: Vision LLM + LLM Agent (not custom PyTorch)")
+print("  - Automations: entity-triggered workflows documented")
+print("  - RLS policies: all 23 entities with role hierarchy")
+print("  - No emojis, professional formatting throughout")
+print("  - Unified contact: info@ekexintelligence.com")
+print("  - Official address: EKEXintelligence.com")
