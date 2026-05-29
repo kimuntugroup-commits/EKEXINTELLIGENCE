@@ -1,3 +1,24 @@
+<div align="center">
+
+# 📜 GNU AFFERO GENERAL PUBLIC LICENSE v3.0
+
+### EKEX Intelligence — Network Service Amendments
+
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
+[![Open Source](https://img.shields.io/badge/Open%20Source-Yes-brightgreen.svg)]()
+[![Self-Hostable](https://img.shields.io/badge/Self--Hostable-Ready-success.svg)]()
+[![Region: Africa](https://img.shields.io/badge/Region-Africa-FFD700.svg)]()
+
+**🏠 Official:** [EKEXintelligence.com](https://EKEXintelligence.com)  
+**📧 All Inquiries:** [info@ekexintelligence.com](mailto:info@ekexintelligence.com)
+
+</div>
+
+---
+
+## License Core Text
+
+```
 GNU AFFERO GENERAL PUBLIC LICENSE
 Version 3, 19 November 2007
 
@@ -15,83 +36,132 @@ GNU Affero General Public License for more details.
 
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
+```
 
-Also add information on how to contact you by electronic and paper mail.
+---
 
-If your software can interact with users remotely through a computer
-network, you should also make sure that it provides a way for users to
-get its source.  For example, if your program is a web application, its
-interface could display a "Source" link that leads users to an archive
-of the code.  There are many ways you could offer source, and different
-solutions will be better for different programs; see section 13 for the
-specific requirements.
+## 🔐 EKEX Intelligence — Network Service Amendments
 
-================================================================================
-EKEX INTELLIGENCE â NETWORK SERVICE AMENDMENTS & SOURCE AVAILABILITY NOTICE
-================================================================================
+> **⚠️ CRITICAL:** These amendments apply to ALL deployments of EKEX Intelligence as a network service (SaaS, API, bot, or any remote user interaction).
 
-In addition to the GNU Affero General Public License v3.0 (AGPL-3.0) terms
-above, the following amendments apply specifically to deployments of EKEX
-Intelligence as a network service (SaaS, API, bot, or any remote interaction):
+### 📋 Amendment Index
 
-1. SOURCE OFFER MECHANISM
-   Any deployment of EKEX Intelligence that allows users to interact with
-the software remotely through a computer network MUST prominently provide
-a mechanism for all such users to obtain the Corresponding Source of the
-deployed version, including all modifications, configurations, and
-derivative works.
+| # | Amendment | Status |
+|---|---|---|
+| 1 | Source Offer Mechanism | **MANDATORY** |
+| 2 | Corresponding Source Definition | **MANDATORY** |
+| 3 | No Proprietary Wrapper Circumvention | **MANDATORY** |
+| 4 | White-Label & Multi-Tenant | **MANDATORY** |
+| 5 | No Commercial Sublicensing | **MANDATORY** |
+| 6 | Attribution | **MANDATORY** |
+| 7 | Jurisdiction | **MANDATORY** |
 
-   Acceptable mechanisms include but are not limited to:
-   (a) A "Source" link in the user interface footer or navigation;
-   (b) An API endpoint at /source or /license returning source access info;
-   (c) A message displayed by the NEZA bot (Telegram/WhatsApp) with source URL;
-   (d) Documentation prominently linked from all user-facing entry points.
+---
 
-2. CORRESPONDING SOURCE DEFINITION
-   For EKEX Intelligence, "Corresponding Source" includes:
-   (a) The complete source code of all AGPL-3.0-licensed modules in src/;
-   (b) All build scripts, configuration files, and deployment manifests;
-   (c) All NEZA intent engine models, weights, and training data (if any);
-   (d) All modifications, patches, or custom integrations applied to the core.
+### 1️⃣ Source Offer Mechanism
 
-3. NO PROPRIETARY WRAPPER CIRCUMVENTION
-   Deploying reverse proxies, CDNs, API gateways, or middleware that
-obscure, modify, or intercept EKEX API requests/responses WITHOUT
-offering Corresponding Source constitutes a direct license violation.
-Building a proprietary frontend, mobile app, or wrapper around EKEX
-APIs does NOT exempt you from source disclosure obligations for the
-underlying EKEX deployment.
+Any deployment of EKEX Intelligence that allows users to interact with the software remotely through a computer network **MUST** prominently provide a mechanism for all such users to obtain the **Corresponding Source** of the deployed version, including all modifications, configurations, and derivative works.
 
-4. WHITE-LABEL & MULTI-TENANT DEPLOYMENTS
-   White-label, reseller, or multi-tenant deployments MUST provide
-source access to ALL end users interacting with the software, not merely
-the deploying entity. Each end user's interface MUST contain the source
-offer mechanism.
+**✅ Acceptable Mechanisms:**
 
-5. NO COMMERCIAL SUBLICENSE
-   EKEX Intelligence is licensed under AGPL-3.0 ONLY. No contributor or
-deployer may grant proprietary sublicenses, commercial licenses, or
-closed-source distribution rights for any code derived from this repository.
-Revenue may be generated ONLY through AGPL-3.0-compliant services:
-consulting, support, hosting, customization, and deployment assistance.
+| Method | Implementation |
+|---|---|
+| UI Footer | `"Source"` link in user interface footer or navigation |
+| API Endpoint | `GET /source` or `GET /license` returning source access info |
+| Bot Message | NEZA bot (Telegram/WhatsApp) replies with source URL |
+| Documentation | Prominently linked from all user-facing entry points |
 
-6. ATTRIBUTION
-   All deployments MUST retain the following attribution in user-facing
-interfaces and API responses:
-   "Powered by EKEX Intelligence â Open Intent Intelligence Infrastructure
-    (https://ekexintelligence.com) Â· Licensed under GNU AGPLv3"
+---
 
-7. JURISDICTION
-   This license and its amendments are governed by the laws of Rwanda.
-Disputes shall be resolved through binding arbitration at the
-Kigali International Arbitration Centre (KIAC).
+### 2️⃣ Corresponding Source Definition
 
-================================================================================
+For EKEX Intelligence, `"Corresponding Source"` includes:
 
-For the full text of the GNU Affero General Public License v3.0, see:
-https://www.gnu.org/licenses/agpl-3.0.html
+```
+📦 Corresponding Source Package
+├── 📁 src/                    All AGPL-3.0-licensed modules
+├── 📁 neza/                   NEZA intent engine models & weights
+├── 📁 inference/              AI inference layer code
+├── 📁 ekex/                   EKEX intelligence infrastructure
+├── 📁 api/                    REST/GraphQL endpoints
+├── 📄 docker-compose.yml      Deployment manifests
+├── 📄 Dockerfile              Container build scripts
+├── 📄 .env.example            Configuration templates
+└── 📄 docs/                   Public documentation
+```
 
-For source access to this deployment, contact: info@ekexintelligence.com
+---
 
-Copyright (C) 2026 Kimuntu Group
-Authors: Kayembe Ilunga Eddy-Grant, Stephane Bilambo, Goetz Kisoni
+### 3️⃣ 🚫 No Proprietary Wrapper Circumvention
+
+Deploying reverse proxies, CDNs, API gateways, or middleware that obscure, modify, or intercept EKEX API requests/responses **WITHOUT** offering Corresponding Source constitutes a **direct license violation**.
+
+> Building a proprietary frontend, mobile app, or wrapper around EKEX APIs does **NOT** exempt you from source disclosure obligations for the underlying EKEX deployment.
+
+---
+
+### 4️⃣ White-Label & Multi-Tenant Deployments
+
+White-label, reseller, or multi-tenant deployments **MUST** provide source access to **ALL** end users interacting with the software, not merely the deploying entity. Each end user's interface **MUST** contain the source offer mechanism.
+
+---
+
+### 5️⃣ 🚫 No Commercial Sublicensing
+
+EKEX Intelligence is licensed under **AGPL-3.0 ONLY**. No contributor or deployer may grant proprietary sublicenses, commercial licenses, or closed-source distribution rights for any code derived from this repository.
+
+**✅ Permitted Revenue Models:**
+
+| Service | Description |
+|---|---|
+| Consulting | Architecture review, customization guidance |
+| Support | Priority technical support, SLA guarantees |
+| Hosting | Managed EKEX deployments |
+| Deployment | Installation, configuration, migration |
+
+**🚫 Prohibited:** Proprietary forks, closed-source modules, relicensing.
+
+---
+
+### 6️⃣ Attribution
+
+All deployments **MUST** retain the following attribution in user-facing interfaces and API responses:
+
+```
+Powered by EKEX Intelligence — Open Intent Intelligence Infrastructure
+https://EKEXintelligence.com · Licensed under GNU AGPLv3
+```
+
+---
+
+### 7️⃣ ⚖️ Jurisdiction
+
+| Aspect | Detail |
+|---|---|
+| **Governing Law** | Laws of Rwanda |
+| **Dispute Resolution** | Binding arbitration at Kigali International Arbitration Centre (KIAC) |
+| **Arbitration Seat** | Kigali, Rwanda |
+
+---
+
+## 📞 Contact & Source Access
+
+<div align="center">
+
+| 🌐 Official Website | 📧 All Inquiries |
+|---|---|
+| [EKEXintelligence.com](https://EKEXintelligence.com) | [info@ekexintelligence.com](mailto:info@ekexintelligence.com) |
+
+**Full AGPL-3.0 text:** [www.gnu.org/licenses/agpl-3.0.html](https://www.gnu.org/licenses/agpl-3.0.html)
+
+</div>
+
+---
+
+<div align="center">
+
+**© 2026 Kimuntu Group**  
+**Authors:** Kayembe Ilunga Eddy-Grant · Stephane Bilambo · Goetz Kisoni  
+**License:** GNU Affero General Public License v3.0
+
+</div>
