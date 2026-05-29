@@ -1,651 +1,338 @@
-# EKEX Intelligence — Deployment Guide
+deployment_content = """# EKEX Intelligence -- Deployment Guide
 
-**Version:** 1.0  
-**Date:** 2026-05-28  
-**Author:** Kimuntu Group  
-**Status:** Reference Implementation
+## Overview
+
+This document provides deployment instructions for EKEX Intelligence. The system is built on the Base44 platform with Deno Deploy Edge Functions, using Vite + React 18 for the frontend.
 
 ---
 
 ## Table of Contents
 
-1. [Deployment Overview](#deployment-overview)
-2. [Local Development Setup](#local-development-setup)
-3. [Staging Environment](#staging-environment)
-4. [Production Environment](#production-environment)
-5. [Environment Configuration](#environment-configuration)
-6. [Database Migrations](#database-migrations)
-7. [Health Checks & Monitoring](#health-checks--monitoring)
+- [Infrastructure Overview](#infrastructure-overview)
+- [Prerequisites](#prerequisites)
+- [Frontend Deployment](#frontend-deployment)
+- [Edge Functions Deployment](#edge-functions-deployment)
+- [Environment Variables](#environment-variables)
+- [Automations Setup](#automations-setup)
+- [Domains](#domains)
+- [Roles & Access](#roles--access)
+- [Monitoring](#monitoring)
+- [Troubleshooting](#troubleshooting)
 
 ---
 
-## Deployment Overview
+## Infrastructure Overview
 
-EKEX Intelligence supports three deployment environments, each with specific infrastructure requirements:
-
-| Environment | Purpose | Scale | Data | SSL/TLS |
-|-------------|---------|-------|------|---------|
-| **Local (Docker Compose)** | Development & testing | Single machine | Sample data | No |
-| **Staging** | Pre-production testing | 2-3 app servers | Real-like data | Yes |
-| **Production** | Live platform | 3+ app servers + workers | Production data | Yes (mandatory) |
+| Layer | Platform | Type |
+|---|---|---|
+| Frontend SPA | Base44 Platform | Managed hosting |
+| Edge Functions | Deno Deploy | Serverless / edge |
+| Database | Base44 Entity DB | Managed BaaS |
+| Email | Resend | Transactional SaaS |
+| Secondary DB | Supabase | Postgres mirror |
+| Notifications | Command Center | Internal microservice |
 
 ---
 
-## Local Development Setup
+## Prerequisites
 
-### Quick Start (Docker Compose)
+### Required Software
 
-For developers who want to run EKEX locally with minimal setup:
+| Software | Version | Purpose |
+|---|---|---|
+| Node.js | 18.x LTS | Frontend development |
+| npm | 9+ | Package management |
+| Deno | 1.40+ | Edge Function development |
+| Git | 2.40+ | Source control |
+
+### Base44 Platform Access
+
+1. Create account at [base44.com](https://base44.com)
+2. Create new project "ekex-intelligence"
+3. Configure project settings
+
+---
+
+## Frontend Deployment
+
+Built with **Vite + React 18**. Deployed automatically via Base44 platform.
+
+### Local Development
 
 ```bash
-# Clone repository
-git clone https://github.com/kimuntugroup-commits/EKEXINTELLIGENCE.git
-cd EKEXINTELLIGENCE
-
-# Copy environment template
-cp .env.example .env.local
-
-# Edit environment file (optional — defaults work for local dev)
-# nano .env.local
-
-# Start all services (app, database, cache, bot)
-docker-compose -f docker-compose.example.yml up -d
-
 # Install dependencies
 npm install
-
-# Run database migrations
-npm run db:migrate
-
-# Seed sample data
-npm run db:seed
 
 # Start development server
 npm run dev
 ```
 
-### Services Started
+Frontend runs at http://localhost:5173
 
-```
-┌────────────────────────────────────────────┐
-│      LOCAL DEVELOPMENT ENVIRONMENT         │
-├────────────────────────────────────────────┤
-│                                            │
-│  🟢 Node.js API Server                     │
-│     Port: 3000                             │
-│     URL: http://localhost:3000             │
-│     Auto-reload on code changes            │
-│                                            │
-│  🗄️ PostgreSQL Database                    │
-│     Port: 5432                             │
-│     Database: ekex_intelligence            │
-│     Credentials: root/password             │
-│                                            │
-│  📦 Redis Cache                            │
-│     Port: 6379                             │
-│     Pub/Sub enabled                        │
-│                                            │
-│  🤖 Telegram Bot (NEZA)                    │
-│     Port: 3001                             │
-│     Token: Set via TELEGRAM_BOT_TOKEN      │
-│                                            │
-└────────────────────────────────────────────┘
-```
-
-### Access Points
-
-| Service | URL | Purpose |
-|---------|-----|---------|
-| Consumer Portal | `http://localhost:3000` | Web interface |
-| Admin Dashboard | `http://localhost:3000/admin` | Management UI |
-| GraphQL Playground | `http://localhost:3000/graphql` | Query testing |
-| PostgreSQL | `localhost:5432` | Database |
-| Redis CLI | `redis-cli -p 6379` | Cache inspection |
-
-### Stopping Services
+### Production Build
 
 ```bash
-# Stop all services (keeps volumes/data)
-docker-compose -f docker-compose.example.yml stop
+# Production build (handled by platform)
+npm run build
+```
 
-# Remove containers (keeps volumes/data)
-docker-compose -f docker-compose.example.yml down
+Entry: `src/main.jsx` -> `src/App.jsx` (router) -> pages/
 
-# Full reset (removes all data)
-docker-compose -f docker-compose.example.yml down -v
+### Build Output
+
+| File | Purpose |
+|---|---|
+| `src/main.jsx` | Application entry point |
+| `src/App.jsx` | React Router v6 configuration |
+| `src/pages/` | Route-level page components |
+| `src/components/` | Reusable UI components |
+| `src/hooks/` | Custom React hooks |
+| `src/lib/` | Utility functions, SDK clients |
+
+---
+
+## Edge Functions Deployment
+
+All 20 backend functions are deployed as Deno serverless handlers.
+
+### Function Directory
+
+```
+functions/
+|-- activateSupplierAccount.js
+|-- adminGetAllProducts.js
+|-- analyzeImage.js
+|-- checkDuplicateAccount.js
+|-- checkUserCredits.js
+|-- consumeCredit.js
+|-- createSupplierAccreditation.js
+|-- deliverReport.js
+|-- fetchProductGallery.js
+|-- findSuppliersByProduct.js
+|-- flagSupplierMisconduct.js
+|-- notifyCommandCenter.js
+|-- notifySupplierOnSignal.js
+|-- onSupplierApplicationCreated.js
+|-- processSupplierTag.js
+|-- requestCreditPack.js
+|-- routeSignalToSuppliers.js
+|-- runProductMatching.js
+|-- sendMatchEmail.js
+|-- syncSignalToSupabase.js
+```
+
+### Function Pattern
+
+```javascript
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
+
+Deno.serve(async (req) => {
+  const base44 = createClientFromRequest(req);
+  const user = await base44.auth.me();
+  if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  // ... business logic
+});
+```
+
+### Deploy to Deno Deploy
+
+```bash
+# Install deployctl
+npm install -g deployctl
+
+# Deploy all functions
+deployctl deploy --project=ekex-intelligence --include=functions/
+
+# Deploy single function
+deployctl deploy --project=ekex-intelligence --include=functions/analyzeImage.js
 ```
 
 ---
 
-## Staging Environment
+## Environment Variables
 
-### Infrastructure Setup
+> Never commit secrets. All variables are set via platform dashboard -> Settings -> Environment Variables.
 
-Staging runs on AWS-like infrastructure with persistent storage:
+### Required Variables
 
-```
-┌─────────────────────────────────────────────────────┐
-│              STAGING CLUSTER (AWS)                  │
-├─────────────────────────────────────────────────────┤
-│                                                     │
-│  Application Tier                                   │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────┐  │
-│  │ App Server 1 │  │ App Server 2 │  │  Worker  │  │
-│  │ (t3.small)   │  │ (t3.small)   │  │ (t3.sm)  │  │
-│  └──────────────┘  └──────────────┘  └──────────┘  │
-│         │                 │                 │       │
-│         └─────────────────┼─────────────────┘       │
-│                           │                         │
-│         ┌─────────────────┴─────────────────┐       │
-│         │   Target Group (ALB)              │       │
-│         │   Health check: /health           │       │
-│         └─────────────────┬─────────────────┘       │
-│                           │                         │
-│  Data Tier                                          │
-│  ┌──────────────────────────────────────────┐       │
-│  │ RDS PostgreSQL (db.t3.micro)             │       │
-│  │ • Multi-AZ (automated failover)          │       │
-│  │ • Automated backups (7-day retention)    │       │
-│  │ • Enhanced monitoring enabled            │       │
-│  └──────────────────────────────────────────┘       │
-│                                                     │
-│  Cache Tier                                         │
-│  ┌──────────────────────────────────────────┐       │
-│  │ ElastiCache Redis (cache.t3.micro)       │       │
-│  │ • Parameter group: default.redis7        │       │
-│  │ • Replication: single-AZ                 │       │
-│  │ • Automatic failover: disabled           │       │
-│  └──────────────────────────────────────────┘       │
-│                                                     │
-└─────────────────────────────────────────────────────┘
-```
+| Variable | Used In | Description |
+|---|---|---|
+| `COMMAND_CENTER_URL` | notifyCommandCenter, flagSupplierMisconduct, deliverReport | Internal webhook endpoint |
+| `RESEND_API_KEY` | sendMatchEmail | Resend email API key |
 
-### Deployment Steps
+### Optional Variables
 
-#### 1. Create RDS Database
+| Variable | Used In | Description |
+|---|---|---|
+| `SUPABASE_URL` | syncSignalToSupabase | Supabase project URL |
+| `SUPABASE_KEY` | syncSignalToSupabase | Supabase service role key |
+| `OPENAI_API_KEY` | analyzeImage, runProductMatching | LLM provider key |
+| `TELEGRAM_BOT_TOKEN` | notifySupplierOnSignal | NEZA Telegram bot token |
+| `WHATSAPP_API_KEY` | notifySupplierOnSignal | WhatsApp Business API key |
+
+### Local Development
 
 ```bash
-# Create RDS instance
-aws rds create-db-instance \
-  --db-instance-identifier ekex-staging \
-  --db-instance-class db.t3.micro \
-  --engine postgres \
-  --engine-version 14.7 \
-  --master-username ekexadmin \
-  --master-user-password $(openssl rand -base64 32) \
-  --allocated-storage 100 \
-  --storage-type gp3 \
-  --multi-az \
-  --backup-retention-period 7 \
-  --publicly-accessible false \
-  --vpc-security-group-ids sg-xxxxx
-```
+# Create local environment file
+cp .env.example .env.local
 
-#### 2. Create ElastiCache Redis
-
-```bash
-aws elasticache create-cache-cluster \
-  --cache-cluster-id ekex-staging-redis \
-  --cache-node-type cache.t3.micro \
-  --engine redis \
-  --engine-version 7.0 \
-  --num-cache-nodes 1 \
-  --parameter-group-name default.redis7 \
-  --security-group-ids sg-xxxxx
-```
-
-#### 3. Deploy Application
-
-```bash
-# Build Docker image
-docker build -t ekex-intelligence:staging .
-
-# Push to ECR
-aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $(aws sts get-caller-identity --query Account --output text).dkr.ecr.us-east-1.amazonaws.com
-
-docker tag ekex-intelligence:staging $(aws sts get-caller-identity --query Account --output text).dkr.ecr.us-east-1.amazonaws.com/ekex-intelligence:staging
-
-docker push $(aws sts get-caller-identity --query Account --output text).dkr.ecr.us-east-1.amazonaws.com/ekex-intelligence:staging
-
-# Deploy via ECS
-aws ecs update-service \
-  --cluster ekex-staging \
-  --service ekex-app \
-  --force-new-deployment
-```
-
-#### 4. Run Database Migrations
-
-```bash
-# SSH into app server
-ssh ec2-user@app-server-ip
-
-# Run migrations
-npm run db:migrate -- --environment staging
-```
-
-### Environment Variables (Staging)
-
-Create `.env.staging`:
-
-```env
-NODE_ENV=staging
-APP_PORT=3000
-LOG_LEVEL=info
-
-# Database
-DATABASE_URL=postgresql://ekexadmin:PASSWORD@ekex-staging.rds.amazonaws.com:5432/ekex_intelligence
-DATABASE_POOL_SIZE=20
-
-# Cache
-REDIS_URL=redis://ekex-staging-redis.xxxxx.ng.0001.use1.cache.amazonaws.com:6379
-
-# Auth & Security
-JWT_SECRET=<generate-with-openssl-rand-base64-32>
-JWT_EXPIRY=15m
-JWT_REFRESH_EXPIRY=7d
-
-# Telegram Bot
-TELEGRAM_BOT_TOKEN=<bot-token>
-TELEGRAM_WEBHOOK_URL=https://staging.ekexintelligence.com/webhook/telegram
-
-# Monitoring
-SENTRY_DSN=https://xxxxx@sentry.io/yyyyy
-LOG_SERVICE=datadog
-
-# Feature Flags
-FEATURE_MATCHING_ENGINE=false  # Enable after Layer 3 fixes
-FEATURE_GAP_DETECTION=false    # Enable after Layer 4 implementation
+# Edit with your values
+nano .env.local
 ```
 
 ---
 
-## Production Environment
+## Automations Setup
 
-### Architecture
+Automations are entity-triggered or scheduled workflows configured in the Base44 dashboard.
 
-Production uses a highly available, distributed architecture:
+### Required Automations
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│                   PRODUCTION ARCHITECTURE                    │
-├──────────────────────────────────────────────────────────────┤
-│                                                              │
-│  CDN / Caching Layer                                         │
-│  ┌────────────────────────────────────────────────────────┐  │
-│  │ CloudFlare / AWS CloudFront                            │  │
-│  │ • DDoS protection (default)                            │  │
-│  │ • Static asset caching (1hr TTL)                       │  │
-│  │ • Global edge locations                                │  │
-│  └────────────────────────────────────────────────────────┘  │
-│           │                                                   │
-│  WAF & Rate Limiting                                         │
-│  ┌────────┴─────────────────────────────────────────────────┐ │
-│  │ AWS WAF / ModSecurity                                    │ │
-│  │ • Bot detection                                          │ │
-│  │ • Rate limiting: 100 req/min per IP                      │ │
-│  │ • SQL injection & XSS prevention                         │ │
-│  └────────────────────────────────────────────────────────┘  │
-│           │                                                   │
-│  Load Balancer                                               │
-│  ┌────────┴─────────────────────────────────────────────────┐ │
-│  │ AWS ALB / NLB                                            │ │
-│  │ • SSL/TLS termination (TLS 1.3)                          │ │
-│  │ • Path-based routing                                     │ │
-│  │ • Health check interval: 30s                             │ │
-│  └────────────────────────────────────────────────────────┘  │
-│           │                                                   │
-│  Application Tier (Auto-Scaling)                             │
-│  ┌────────┴──────────────────────────────────────────────────┐│
-│  │ ECS / Kubernetes Cluster                                  ││
-│  │                                                           ││
-│  │ ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐  ││
-│  │ │ App 1    │  │ App 2    │  │ App 3    │  │ App N    │  ││
-│  │ │ (c5.xl)  │  │ (c5.xl)  │  │ (c5.xl)  │  │ (scaled) │  ││
-│  │ └──────────┘  └──────────┘  └──────────┘  └──────────┘  ││
-│  │                                                           ││
-│  │ ┌──────────────────────────────────────────────────┐    ││
-│  │ │ Worker Pool (Background Jobs)                    │    ││
-│  │ │ • Signal processing                              │    ││
-│  │ │ • Matching engine                                │    ││
-│  │ │ • Gap detection scheduler                        │    ││
-│  │ │ • Email/notification queue                       │    ││
-│  │ └──────────────────────────────────────────────────┘    ││
-│  └────────────────────────────────────────────────────────┘ │
-│           │                                                   │
-│  Data Tier                                                   │
-│  ┌────────┴────────────────────────────────────────────────┐ │
-│  │ RDS PostgreSQL Multi-AZ (db.r5.xlarge)                 │ │
-│  │ ┌──────────────────────────────────────────────────┐   │ │
-│  │ │ Primary (us-east-1a)                             │   │ │
-│  │ │ • Read/Write                                     │   │ │
-│  │ │ • Automated daily backups (30-day retention)     │   │ │
-│  │ │ • Encryption at rest (AES-256)                   │   │ │
-│  │ └──────────────────────────────────────────────────┘   │ │
-│  │           │                                             │ │
-│  │ ┌─────────┴──────────┐   ┌────────────────────────────┐ │ │
-│  │ │ Replica 1 (us-a-b) │   │ Replica 2 (us-east-1c)     │ │ │
-│  │ │ • Read-only        │   │ • Read-only                │ │ │
-│  │ │ • Automatic failover   │ • Analytics queries        │ │ │
-│  │ └────────────────────┘   └────────────────────────────┘ │ │
-│  └─────────────────────────────────────────────────────────┘ │
-│           │                                                   │
-│  Cache Tier                                                  │
-│  ┌────────┴────────────────────────────────────────────────┐ │
-│  │ ElastiCache Redis Cluster (cache.r5.large × 3 nodes)  │ │
-│  │ • Automatic failover enabled                            │ │
-│  │ • Multi-AZ deployment                                   │ │
-│  │ • Encryption in transit (TLS)                           │ │
-│  │ • Encryption at rest enabled                            │ │
-│  │ • Automated backups to S3                               │ │
-│  └────────────────────────────────────────────────────────┘ │
-│           │                                                   │
-│  Storage & Logging                                           │
-│  ┌────────┴────────────────────────────────────────────────┐ │
-│  │ S3 (File uploads, exports, backups)                    │ │
-│  │ CloudWatch Logs (Application logging)                  │ │
-│  │ Datadog / New Relic (APM & monitoring)                 │ │
-│  │ PagerDuty (Incident alerting)                          │ │
-│  └────────────────────────────────────────────────────────┘ │
-│                                                              │
-└──────────────────────────────────────────────────────────────┘
-```
+| Name | Type | Trigger | Function | Status |
+|---|---|---|---|---|
+| Signal Router | Entity | ConsumerSignal created | routeSignalToSuppliers | Required |
+| Supplier Notifier | Entity | ConsumerSignal created | notifySupplierOnSignal | Required |
+| App Approved | Entity | SupplierApplication status=approved | notifyCommandCenter | Required |
 
-### Production Checklist
+### Automation Configuration
 
-Before deploying to production:
-
-- [ ] Database is multi-AZ with automated backups
-- [ ] Redis cluster has 3+ nodes with failover enabled
-- [ ] SSL/TLS certificate installed (Let's Encrypt or AWS ACM)
-- [ ] Application auto-scaling policy configured (2-10 instances)
-- [ ] Health checks enabled on load balancer
-- [ ] CloudWatch alarms configured for:
-  - [ ] Database CPU > 80%
-  - [ ] API error rate > 1%
-  - [ ] Signal processing latency > 5s
-  - [ ] Matching engine failures
-- [ ] Monitoring & alerting (Sentry, Datadog, PagerDuty)
-- [ ] Backup strategy tested (RDS, Redis, S3)
-- [ ] Disaster recovery runbook prepared
-- [ ] Security scan completed (OWASP, penetration test)
-
-### Environment Variables (Production)
-
-Create `.env.production` (stored in AWS Secrets Manager):
-
-```env
-NODE_ENV=production
-APP_PORT=3000
-LOG_LEVEL=warn
-
-# Database
-DATABASE_URL=postgresql://ekexadmin:STRONG_PASSWORD@ekex-prod.rds.amazonaws.com:5432/ekex_intelligence
-DATABASE_POOL_SIZE=50
-DATABASE_POOL_TIMEOUT=30000
-DATABASE_SSL=require
-DATABASE_REPLICA_URLS=postgresql://reader:PASSWORD@replica1.rds.amazonaws.com:5432/ekex_intelligence,postgresql://reader:PASSWORD@replica2.rds.amazonaws.com:5432/ekex_intelligence
-
-# Cache
-REDIS_URL=redis://ekex-prod-cluster.xxxxx.ng.0001.use1.cache.amazonaws.com:6379
-REDIS_SSL=true
-REDIS_AUTH_TOKEN=<strong-auth-token>
-
-# Auth & Security
-JWT_SECRET=<generate-with-openssl-rand-base64-64>
-JWT_EXPIRY=15m
-JWT_REFRESH_EXPIRY=7d
-BCRYPT_ROUNDS=12
-
-# Telegram Bot
-TELEGRAM_BOT_TOKEN=<production-bot-token>
-TELEGRAM_WEBHOOK_URL=https://api.ekexintelligence.com/webhook/telegram
-
-# Monitoring & Observability
-SENTRY_DSN=https://xxxxx@sentry.io/yyyyy
-SENTRY_ENVIRONMENT=production
-DATADOG_API_KEY=<datadog-key>
-PAGERDUTY_INTEGRATION_KEY=<pagerduty-key>
-
-# Feature Flags
-FEATURE_MATCHING_ENGINE=true
-FEATURE_GAP_DETECTION=true
-FEATURE_FEEDBACK_LOOP=true
-
-# Rate Limiting
-RATE_LIMIT_WINDOW_MS=60000
-RATE_LIMIT_MAX_REQUESTS=100
-RATE_LIMIT_MAX_API_KEY=1000
-```
+1. Navigate to Base44 Dashboard -> Automations
+2. Create new automation
+3. Select trigger type (Entity or Scheduled)
+4. Configure trigger conditions
+5. Select target Edge Function
+6. Save and activate
 
 ---
 
-## Environment Configuration
+## Domains
 
-### Configuration Hierarchy
+| Environment | URL | Status |
+|---|---|---|
+| Production | [EKEXintelligence.com](https://EKEXintelligence.com) | Live |
+| Supplier Portal | [suppliers.ekexintelligence.com](https://suppliers.ekexintelligence.com) | Live |
+| API | [api.ekexintelligence.com](https://api.ekexintelligence.com) | Live |
 
-```
-1. Command-line arguments (highest priority)
-2. Environment variables (.env file)
-3. Environment-specific config (config/production.js)
-4. Default config (config/default.js)
-5. Hardcoded defaults (lowest priority)
-```
+### Domain Configuration
 
-### .env File Example
-
-```bash
-# Server
-NODE_ENV=development
-APP_PORT=3000
-APP_HOST=localhost
-
-# Database
-DATABASE_URL=postgresql://user:password@localhost:5432/ekex_intelligence
-DATABASE_POOL_SIZE=20
-DATABASE_SSL=false
-
-# Cache
-REDIS_URL=redis://localhost:6379
-REDIS_PASSWORD=
-
-# Auth
-JWT_SECRET=dev-secret-change-in-production
-JWT_EXPIRY=15m
-JWT_REFRESH_EXPIRY=7d
-
-# External Services
-TELEGRAM_BOT_TOKEN=xxxx:yyyy
-SENTRY_DSN=
-
-# Feature Flags
-FEATURE_MATCHING_ENGINE=false
-FEATURE_GAP_DETECTION=false
-```
-
-### Configuration Validation
-
-On startup, the application validates required variables:
-
-```bash
-$ npm start
-
-✓ Checking environment configuration...
-✓ DATABASE_URL is set
-✓ JWT_SECRET is set (min 32 chars)
-✓ REDIS_URL is set
-✓ TELEGRAM_BOT_TOKEN is set
-✓ All required environment variables present
-```
+1. Register domain with DNS provider
+2. Add A/AAAA records pointing to Base44
+3. Configure SSL certificate (auto-provisioned by Base44)
+4. Set custom domain in Base44 Dashboard
 
 ---
 
-## Database Migrations
+## Roles & Access
 
-### Running Migrations
+| Role | Access Level | Description |
+|---|---|---|
+| super_admin | Full system access | Platform administrators |
+| operations | Read/write most entities | Operations team |
+| supplier | Own products, orders, analytics | Verified suppliers |
+| producer | Same as supplier | Product manufacturers |
+| logistics | Routes, delivery data | Logistics partners |
+| user | Consumer features only | End consumers |
 
-```bash
-# Run pending migrations
-npm run db:migrate
+### Admin Portal
 
-# Run with environment override
-npm run db:migrate -- --environment production
+- URL: `/admin/*`
+- Guard: `useAdminGuard` hook
+- Additional lock: Identity-verified email
+- Full access to all 23 entities
 
-# Show migration status
-npm run db:migrate:status
+### Supplier Portal
 
-# Rollback last migration
-npm run db:migrate:rollback
-
-# Rollback specific migration
-npm run db:migrate:rollback -- --step 2
-```
-
-### Migration Files
-
-Located in `src/database/migrations/`:
-
-```
-migrations/
-├── 20260528_120000_create_consumer.sql
-├── 20260528_120100_create_supplier.sql
-├── 20260528_120200_create_consumer_signal.sql
-├── 20260528_120300_create_product_match.sql
-└── ...
-```
-
-### Production Migration Safety
-
-```bash
-# Test migration on staging first
-npm run db:migrate -- --environment staging
-
-# Create snapshot before migration
-aws rds create-db-snapshot \
-  --db-instance-identifier ekex-prod \
-  --db-snapshot-identifier ekex-prod-backup-$(date +%Y%m%d-%H%M%S)
-
-# Run migration with monitoring
-npm run db:migrate -- --environment production --verbose
-```
+- URL: `/supplier/*`
+- Guard: Role check (supplier, producer)
+- Access: Own products, orders, analytics
 
 ---
 
-## Health Checks & Monitoring
+## Monitoring
 
-### Application Health Endpoint
+### Base44 Dashboard
+
+| Metric | Location | Alert |
+|---|---|---|
+| Entity operations | Dashboard -> Analytics | > 1000 ops/min |
+| Edge Function invocations | Dashboard -> Functions | Error rate > 1% |
+| Active users | Dashboard -> Analytics | Anomaly detection |
+
+### Deno Deploy Dashboard
+
+| Metric | Location | Alert |
+|---|---|---|
+| Function latency | Metrics | p95 > 500ms |
+| Error rate | Logs | > 1% |
+| Cold starts | Metrics | > 2s |
+
+### Resend Dashboard
+
+| Metric | Location | Alert |
+|---|---|---|
+| Delivery rate | Dashboard | < 95% |
+| Bounce rate | Dashboard | > 5% |
+| Open rate | Dashboard | Tracking |
+
+### Health Check
 
 ```bash
-GET /health
-```
+GET /api/v1/health
 
-Response (healthy):
-```json
+Response:
 {
-  "status": "ok",
-  "uptime": 3600,
-  "timestamp": "2026-05-28T12:00:00Z",
+  "status": "healthy",
+  "version": "1.0.0",
+  "timestamp": "2026-05-29T03:59:00Z",
   "services": {
-    "database": "connected",
-    "redis": "connected",
-    "telegram_bot": "connected"
+    "base44": "connected",
+    "deno_deploy": "connected",
+    "resend": "connected"
   }
 }
 ```
 
-### Readiness Probe (Kubernetes)
-
-```bash
-GET /ready
-```
-
-```json
-{
-  "ready": true,
-  "database": "ok",
-  "cache": "ok"
-}
-```
-
-### Monitoring Metrics
-
-| Metric | Target | Alert Threshold |
-|--------|--------|-----------------|
-| API Response Time (p95) | < 200ms | > 500ms |
-| Error Rate | < 0.1% | > 1% |
-| Database CPU | < 70% | > 80% |
-| Database Connections | < 30 | > 40 |
-| Redis Memory | < 70% | > 85% |
-| Signal Processing | < 5s | > 10s |
-| Matching Engine | < 2s | > 5s |
-
-### Log Aggregation
-
-Logs are centralized in:
-- **Development**: Console (colorized)
-- **Staging**: CloudWatch Logs
-- **Production**: CloudWatch + Datadog
-
-Log format:
-```json
-{
-  "timestamp": "2026-05-28T12:00:00.123Z",
-  "level": "info",
-  "service": "signal-processor",
-  "message": "Signal processed",
-  "correlation_id": "xxxx-yyyy",
-  "metadata": {}
-}
-```
-
 ---
 
-## Troubleshooting Deployments
+## Troubleshooting
 
 ### Common Issues
 
-**Issue**: Database migration fails
+| Symptom | Cause | Solution |
+|---|---|---|
+| Build fails | Node version mismatch | Use Node 18.x LTS |
+| Edge Function 401 | Missing auth | Verify base44.auth.me() |
+| Email not sending | Invalid Resend key | Check RESEND_API_KEY |
+| Automation not firing | Wrong trigger | Verify entity type and conditions |
+| RLS denied | Role mismatch | Check user role and entity policies |
+| Slow queries | Missing filters | Always include state/status filters |
+
+### Log Locations
+
+| Component | Location | Access |
+|---|---|---|
+| Frontend | Browser console | Client-side |
+| Edge Functions | Deno Deploy logs | Dashboard |
+| Automations | Base44 automation logs | Dashboard |
+| Database | Base44 entity logs | Dashboard |
+
+### Debug Mode
 
 ```bash
-# Check migration status
-npm run db:migrate:status
+# Enable verbose logging
+LOG_LEVEL=debug npm run dev
 
-# View migration logs
-docker-compose logs db
+# Test Edge Function locally
+deno run --allow-net --allow-env functions/analyzeImage.js
 
-# Rollback and re-check
-npm run db:migrate:rollback
-```
-
-**Issue**: Redis connection timeout
-
-```bash
-# Check Redis health
-redis-cli ping
-
-# View Redis logs
-docker-compose logs redis
-
-# Restart Redis
-docker-compose restart redis
-```
-
-**Issue**: Telegram bot not receiving webhooks
-
-```bash
-# Verify webhook URL
-curl https://api.telegram.org/bot<TOKEN>/getWebhookInfo
-
-# Re-register webhook
-npm run telegram:register-webhook
+# Inspect Base44 entities
+# Use Base44 Dashboard -> Data -> Entities
 ```
 
 ---
 
-<div align="center">
+## Related Documentation
 
-**[← Back to README](../README.md)** · **[Architecture Documentation](./ARCHITECTURE.md)** · **[Database Schema](./DATABASE.md)**
-
-*© 2026 Kimuntu Group · EKEX Intelligence*
-
-</div>
+- [ARCHITECTURE.md](ARCHITECTURE.md) -- System architecture and component specifications
+- [DATABASE.md](DATABASE.md) -- Entity schemas and RLS policies
+- [API Reference](https://api.ekexintelligence.com) -- Interactive API documentation
