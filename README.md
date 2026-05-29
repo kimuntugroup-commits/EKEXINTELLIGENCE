@@ -2,176 +2,186 @@
 
 # EKEX INTELLIGENCE
 
-Scalable Digital Infrastructure for Demand-Driven African Supply Chains
+### Open Intent Intelligence Infrastructure for Local Commerce
 
-[https://www.gnu.org/licenses/agpl-3.0](https://www.gnu.org/licenses/agpl-3.0)
+[![AGPLv3 License](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
+[![Status](https://img.shields.io/badge/Status-Production%20Ready-green.svg)]()
+[![Platform](https://img.shields.io/badge/Platform-Web%20%7C%20API%20%7C%20Telegram%20%7C%20WhatsApp-orange.svg)]()
+[![Region](https://img.shields.io/badge/Region-Africa-FFD700.svg)]()
 
-[Documentation](https://github.com/kimuntugroup-commits/EKEXINTELLIGENCE/tree/main/docs) · [API Reference](https://github.com/kimuntugroup-commits/EKEXINTELLIGENCE/docs/API.md) · [Report Issue](https://github.com/kimuntugroup-commits/EKEXINTELLIGENCE/issues)
+**[Documentation](https://docs.ekexintelligence.com)** · **[API Reference](https://api.ekexintelligence.com)** · **[Report Issue](https://github.com/ekexintelligence/ekex-core/issues)**
 
 </div>
 
+---
+
 ## Table of Contents
 
-- [Project Overview](#project-overview)
+- [What is EKEX Intelligence?](#what-is-ekex-intelligence)
+- [NEZA: The Visual Intent Engine](#neza-the-visual-intent-engine)
+- [The Core Loop](#the-core-loop)
 - [Repository Architecture](#repository-architecture)
 - [Core Capabilities](#core-capabilities)
 - [Technology Stack](#technology-stack)
 - [Getting Started](#getting-started)
-- [Defensive Licensing & Compliance Notice](#defensive-licensing--compliance-notice)
+- [AGPL-3.0 Compliance Notice](#agpl-3.0-compliance-notice)
 - [Contributing](#contributing)
 - [Security](#security)
-- [Support & Enterprise](#support--enterprise)
-- [About Kimuntu Group](#about-kimuntu-group)
+- [Support](#support)
+- [About](#about)
 
-## Project Overview
+---
 
-EKEX Intelligence is a comprehensive digital infrastructure designed for market demand and B2B supply-chain management across Africa. Built from first principles by the Kimuntu Group, EKEX captures consumer demand signals, structures them into standardized intelligence.
+## What is EKEX Intelligence?
 
-### The Problem We Solve
+**EKEX Intelligence** is a self-hostable, open-source commerce intelligence infrastructure. It transforms how local markets match demand to supply by understanding *what people want* — especially when they show, not just tell.
 
-Fragmented African markets suffer from a critical information asymmetry: consumers express demand through informal channels (WhatsApp, Telegram, word-of-mouth), while suppliers operate in silos without access to real-time signal data. This fragmentation leads to:
+### The Problem
 
-- **Inventory Mismatches**: Suppliers stock products nobody wants while demand goes unmet
-- **Missed Opportunities**: Market gaps remain invisible to entrepreneurs who could fill them
-- **Information Arbitrage**: Middlemen extract disproportionate value from information gaps
-- **Capital Inefficiency**: B2B credit decisions rely on guesswork instead of demand data
+Informal African markets run on intent expressed through scattered channels: WhatsApp forwards, Telegram messages, voice notes, and photos. Suppliers operate blind to aggregate demand. EKEX bridges this gap not by building another marketplace, but by making intent *understandable* and *actionable* as open infrastructure.
 
 ### Our Mission
 
-To build the foundational data infrastructure that enables African businesses to anticipate demand, optimize supply, and capture market opportunities that would otherwise remain invisible.
+> *To build the foundational data infrastructure that enables African businesses to anticipate demand, optimize supply, and capture market opportunities that would otherwise remain invisible.*
 
 ### Current Operational Scope
 
 | Metric | Status |
-|--------|--------|
-| Primary Market | Kigali, Rwanda |
-| Expansion Pipeline | Nairobi, Kenya · Kampala, Uganda |
-| Active Consumers | 4+ real users submitting signals |
-| Verified Suppliers | 6+ active across Rwanda & Uganda |
-| Signal Volume | 14+ demand signals captured |
-| Product Categories | Fashion/Apparel (primary) |
-| Telegram Bot | NEZA (live, timeout fix pending) |
+|---|---|
+| **Primary Market** | Kigali, Rwanda |
+| **Expansion Pipeline** | Nairobi, Kenya · Kampala, Uganda |
+| **Active Consumers** | 4+ real users submitting signals |
+| **Verified Suppliers** | 6+ active across Rwanda & Uganda |
+| **Signal Volume** | 14+ demand signals captured |
+| **Product Categories** | Fashion/Apparel (primary) |
+| **Telegram Bot** | NEZA (live, timeout fix pending) |
+
+---
+
+## NEZA: The Visual Intent Engine
+
+**NEZA** is the multimodal intent intelligence layer at the heart of EKEX. It processes a single input — an image, a voice note, a WhatsApp message, or a Telegram text — and extracts structured intent: product, attributes, quality, style, and urgency. When an image is present, NEZA treats it as the highest-confidence signal.
+
+### How NEZA Works
+
+1. **Ingest** — Captures input from any channel (image, text, voice, WhatsApp, Telegram)
+2. **Understand** — Extracts intent: product recognition, attribute parsing (material, quality, category, style)
+3. **Structure** — Formalizes intent into a `DemandObject` with confidence scoring
+4. **Route** — Hands structured intent to the AI inference layer for matching
+
+NEZA is not a chatbot. It is an intent engine that happens to speak through messaging channels.
+
+---
+
+## The Core Loop
+
+```
+Intent → Visual/Language Understanding → Product Match → Local Availability
+    ↓
+Fulfillment OR Unmet Demand → EKEX Network Routing
+```
+
+1. **Intent Capture** — NEZA ingests multimodal signals (image, text, voice, WhatsApp, Telegram).
+2. **Visual/Language Understanding** — NEZA extracts intent: product recognition, attribute parsing (material, quality, category, style).
+3. **Product Match** — AI inference layer matches intent against structured supply data.
+4. **Local Availability** — Location-weighted matching (city → country fallback) verifies stock proximity.
+5. **Fulfillment OR Unmet Demand** — If matched, route to supplier. If unmatched, flag as unmet demand for network intelligence.
+6. **EKEX Network Routing** — Aggregate unmet demand, route signals to supplier networks, enable regional interoperability.
+
+---
 
 ## Repository Architecture
 
-This public repository contains the AGPLv3-licensed core infrastructure of EKEX Intelligence. Commercial extensions, proprietary integrations, and enterprise-grade modules are maintained in separate private repositories.
-
 ```
 EKEX INTELLIGENCE — REPOSITORY MAP
-═════════════════════════════════════════════════════════════════════
+═══════════════════════════════════════════════════════════════════════════════
 
-📁 PUBLIC REPOSITORY (This Repo) — GNU AGPLv3
+📁 PUBLIC REPOSITORY — GNU AGPLv3
 │
 ├── 📁 src/
-│   ├── 📁 api/                    Core REST/GraphQL API endpoints
-│   ├── 📁 core/                   Protocol implementation layers
-│   │   ├── 📁 layer-1-signal/     Signal capture & ingestion
-│   │   ├── 📁 layer-2-normalize/  Data standardization & deduplication
-│   │   ├── 📁 layer-3-match/      Matching engine (Base44 native AI)
-│   │   ├── 📁 layer-4-gap/        Market gap detection schemas
-│   │   └── 📁 layer-5-feedback/   Feedback loop & learning schemas
-│   ├── 📁 models/                 Database entity definitions (15 schemas)
-│   ├── 📁 services/               Core business services
-│   └── 📁 config/                 Configuration templates & examples
+│   ├── 📁 neza/                   NEZA intent engine (multimodal input processing)
+│   │   ├── 📁 signal-ingestion/   Voice, image, text, WhatsApp, Telegram capture
+│   │   ├── 📁 visual-intent/      Image-based product recognition & attribute extraction
+│   │   └── 📁 intent-structurer/  DemandObject formalization
+│   │
+│   ├── 📁 inference/              AI inference layer
+│   │   ├── 📁 embedding/          Product + intent vectorization
+│   │   ├── 📁 matching/           Similarity scoring & probabilistic match
+│   │   └── 📁 ranking/            Price, quality, similarity, preference fit ranking
+│   │
+│   ├── 📁 ekex/                   EKEX intelligence infrastructure
+│   │   ├── 📁 network-routing/    Supplier network signal distribution
+│   │   ├── 📁 demand-aggregation/ Unmet demand pooling & regional interoperability
+│   │   ├── 📁 availability/       Local stock verification & fallback logic
+│   │   └── 📁 feedback/           Fulfillment outcome learning loop
+│   │
+│   ├── 📁 api/                    REST/GraphQL endpoints
+│   ├── 📁 models/                 Database schemas (DemandObject, SupplyObject, etc.)
+│   └── 📁 config/                 Environment & deployment templates
 │
 ├── 📁 docs/                       Public documentation
+│   ├── 📁 architecture/
+│   ├── 📁 neza/
+│   ├── 📁 apis/
+│   ├── 📁 deployment/
+│   ├── 📁 intelligence-systems/
+│   ├── 📁 supplier-network/
+│   ├── 📁 onboarding/
+│   └── 📁 legal/
+│
 ├── 📁 tests/                      Test suites & fixtures
 ├── 📁 scripts/                    Deployment & utility scripts
 ├── 📁 data/                       Sample data & schema definitions
 │
 ├── 📄 .env.example                Environment variable template
-├── 📄 docker-compose.example.yml  Local development orchestration
-├── 📄 Dockerfile.example          Container build template
+├── 📄 docker-compose.yml          Local development orchestration
+├── 📄 Dockerfile                  Container build template
 ├── 📄 README.md                   This file
-├── 📄 CONTRIBUTING.md             Contribution guidelines & CLA
-├── 📄 LICENSE                     GNU AGPLv3 (with EKEX amendments)
+├── 📄 CONTRIBUTING.md             Contribution guidelines
+├── 📄 LICENSE                     GNU AGPLv3 + EKEX Network Service Amendments
 └── 📄 .gitignore                  Privacy & security protections
 
-═════════════════════════════════════════════════════════════════════
-📁 PRIVATE REPOSITORIES — Commercial License Required
-═════════════════════════════════════════════════════════════════════
-
-🔒 ekex-commercial/mobile-money/
-   ├── MTN MoMo Gateway Integration
-   ├── Wave Payment Processing
-   ├── Orange Money API Adapter
-   └── Cross-telco reconciliation engine
-
-🔒 ekex-commercial/ussd/
-   ├── USSD Session Management
-   ├── Menu Routing Engine
-   ├── SMPP Protocol Adapter
-   └── Offline-first sync layer
-
-🔒 ekex-commercial/ai-analytics/
-   ├── Demand Forecasting Models
-   ├── Price Elasticity Engine
-   ├── Supplier Performance Scoring
-   └── Market Trend Prediction
-
-🔒 ekex-commercial/kyc-compliance/
-   ├── Identity Verification Pipelines
-   ├── Document OCR & Validation
-   ├── Regulatory Reporting (NIMC, Huduma, NIA)
-   └── Biometric Encryption Layer
-
-🔒 ekex-commercial/enterprise/
-   ├── White-Label Customization
-   ├── Advanced RBAC & SSO
-   ├── Multi-tenant Orchestration
-   └── SLA Monitoring & Alerting
-
-═════════════════════════════════════════════════════════════════════
+═══════════════════════════════════════════════════════════════════════════════
 ```
 
-### Boundary Philosophy
-
-The open-core boundary is designed around protocol vs. integration:
-
-- **Public (AGPLv3)**: The demand-supply coordination protocol, data models, matching algorithms, and API infrastructure.
-- **Private (Commercial)**: Financial integrations, telecommunications protocols, advanced analytics, compliance engines, and enterprise customization layers.
-
-For Enterprise Licensing: Contact [info@ekexintelligence.com](mailto:info@ekexintelligence.com) for access to private commercial repositories and enterprise deployment options.
+---
 
 ## Core Capabilities
 
-### Layer 1: Signal Capture
-- Multi-channel demand signal ingestion (Web, Telegram Bot NEZA, API)
-- Location-enriched signal capture with city/country standardization
-- 5-gate deduplication logic (technical duplicate, return-after-match, genuine re-submission, velocity flood, default)
+### NEZA Intent Engine
+- **Multimodal ingestion**: Image, text, voice, WhatsApp, Telegram
+- **Visual intent extraction**: Product recognition, material detection, quality assessment, style classification
+- **Language understanding**: Attribute parsing, urgency detection, preference inference
+- **Signal deduplication**: 5-gate logic (technical duplicate, return-after-match, genuine re-submission, velocity flood, default)
 
-### Layer 2: Normalization & Structuring
-- Global location standardization (10 featured cities + free text, all countries including Congo DRC)
-- DemandObject and SupplyObject formal structures
-- Source reliability scoring framework
+### AI Inference Layer
+- **Embedding & vectorization**: Product + intent semantic representation
+- **Probabilistic matching**: Similarity scoring with confidence thresholds
+- **Ranking engine**: Price, quality, similarity, and preference-fit ranking
+- **Location-weighted fallback**: City → country availability tiers
 
-### Layer 3: Matching Engine
-- Base44 native AI-powered demand-supply matching
-- Location-weighted 2-tier fallback (city → country)
-- Similarity scoring and probabilistic inference
+### EKEX Intelligence Layer
+- **Local availability matching**: Real-time stock proximity verification
+- **Unmet demand detection**: Classification of unmatched intent for network intelligence
+- **Supplier network routing**: Signal distribution to verified supplier pools
+- **Regional interoperability**: Cross-city, cross-country demand aggregation
+- **Feedback learning**: Temporal decay, confidence adjustment, recursive improvement
 
-### Layer 4: Gap Detection
-- Market gap alert state machine
-- Unmet demand classification framework
-- Emerging demand identification schemas
-
-### Layer 5: Feedback & Learning
-- DissatisfactionSignal capture
-- Temporal decay of demand relevance
-- Confidence score adjustment over time
-- Recursive system improvement loop
+---
 
 ## Technology Stack
 
 | Layer | Technology |
-|-------|------------|
-| Frontend | React / Next.js (Mobile-responsive, dark theme) |
-| Backend API | Node.js / Express / GraphQL |
-| Database | PostgreSQL + Redis (caching layer) |
-| AI/ML | Base44 Native AI (Matching Engine) |
-| Messaging | Telegram Bot API (NEZA) |
-| Containerization | Docker + Docker Compose |
-| Cloud | Base44 (Primary), Multi-cloud ready |
+|---|---|
+| **Frontend** | React / Next.js (Mobile-responsive, dark theme) |
+| **Backend API** | Node.js / Express / GraphQL |
+| **Database** | PostgreSQL + Redis (caching layer) |
+| **AI/ML** | AI inference layer (embedding + matching engine) |
+| **Messaging** | Telegram Bot API, WhatsApp Business API |
+| **Containerization** | Docker + Docker Compose |
+| **Cloud** | Multi-cloud ready, self-hostable by default |
+
+---
 
 ## Getting Started
 
@@ -186,162 +196,109 @@ For Enterprise Licensing: Contact [info@ekexintelligence.com](mailto:info@ekexin
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/kimuntugroup-commits/EKEXINTELLIGENCE.git
-cd EKEXINTELLIGENCE
+git clone https://github.com/ekexintelligence/ekex-core.git
+cd ekex-core
 ```
 
 ### 2. Configure Environment
 
 ```bash
-# Copy the example environment file
 cp .env.example .env.local
-
-# Edit .env.local with your local configuration
-# NEVER commit .env.local to git — it is protected by .gitignore
-nano .env.local
+# Edit .env.local — NEVER commit this file
 ```
 
-### 3. Install Dependencies
+### 3. Install & Start
 
 ```bash
 npm install
-```
-
-### 4. Start Infrastructure Services
-
-```bash
-# Start PostgreSQL and Redis via Docker Compose
-docker-compose -f docker-compose.example.yml up -d db redis
-```
-
-### 5. Run Database Migrations
-
-```bash
+docker-compose up -d db redis
 npm run db:migrate
-```
-
-### 6. Seed Sample Data
-
-```bash
 npm run db:seed
-```
-
-### 7. Start Development Server
-
-```bash
 npm run dev
 ```
 
-The API will be available at `http://localhost:3000` and the admin dashboard at `http://localhost:3000/admin`.
+API: `http://localhost:3000` | Admin: `http://localhost:3000/admin`
 
-### 8. Run Tests
+### 4. Run Tests
 
 ```bash
 npm test
 ```
 
-## Defensive Licensing & Compliance Notice
+---
 
-### GNU Affero General Public License v3.0 (AGPLv3)
+## AGPL-3.0 Compliance Notice
 
-This repository and all files within it are licensed under the GNU Affero General Public License v3.0 (AGPLv3), with EKEX-specific amendments.
+This repository is free software licensed under the **GNU Affero General Public License v3.0**.
 
-#### ⚠️ CRITICAL: Network Service Obligations
+### Network Service Obligations
 
-Section 13 of AGPLv3 imposes specific obligations on anyone deploying this software as a network service (SaaS, API, web application):
+If you deploy EKEX Intelligence as a network service (SaaS, API, bot, or any remote user interaction), you **must** offer all users the **Corresponding Source** of your deployed version, including all modifications.
 
-> If you modify the Program, your modified version must prominently offer all users interacting with it remotely through a computer network an opportunity to receive the Corresponding Source of your modification.
+### What This Means
 
-### What This Means for EKEX Deployments
+- **Unmodified deployments**: Still require source offer mechanism.
+- **Modified deployments**: All modifications must be released under AGPL-3.0.
+- **API wrappers & shims**: Proprietary wrappers around EKEX APIs do NOT exempt you from source disclosure for the underlying EKEX deployment.
+- **White-label deployments**: Every end user interface must contain the source offer.
 
-- **If you deploy EKEX Intelligence as a SaaS platform** (even unmodified), you MUST provide source code access to all users interacting with your service.
-- **If you modify EKEX** (configuration changes, custom integrations, UI modifications, API wrappers), your modifications MUST be released under AGPLv3 with source code available.
-- **API Wrappers & Shims**: Building a proprietary wrapper around EKEX APIs that modifies request/response data, authentication flows, or routing logic constitutes a "modified version" under this license.
-- **Reverse Proxy Circumvention**: Deploying reverse proxies, CDNs, or gateways that remove or obscure the source code offer mechanism is a direct license violation.
-- **White-Label & Reseller Restrictions**: Offering white-label or reseller versions of EKEX infrastructure without disclosing Corresponding Source to end users is prohibited.
+### No Proprietary Sublicensing
 
-### Enterprise Commercial Licensing Alternative
+EKEX Intelligence is licensed under AGPL-3.0 **only**. No proprietary sublicensing, commercial licenses, or closed-source distribution rights are granted for any code in this repository. Revenue may be generated through AGPL-3.0-compliant services: consulting, support, hosting, and deployment assistance.
 
-If your organization cannot comply with AGPLv3 obligations, or requires:
+For the full license text, see [LICENSE](LICENSE).
 
-- Closed-source deployment rights
-- Exemption from source disclosure obligations
-- Access to proprietary commercial modules (Mobile Money, USSD, AI Analytics, KYC)
-- Priority support and SLA guarantees
-- Patent and trademark usage rights
-
-**Contact us for licensing:**
-
-📧 [info@ekexintelligence.com](mailto:info@ekexintelligence.com)
-
-Our commercial licensing program is designed for:
-- Enterprise B2B platforms
-- Telcos and Mobile Money operators
-- Logistics and supply-chain companies
-- Government and regulatory bodies
-- Multi-national corporations operating in African markets
+---
 
 ## Contributing
 
-We welcome contributions from the African developer community and global open-source ecosystem. Please read our [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines, our Contributor License Agreement, and community standards.
+We welcome contributions from the African developer community and global open-source ecosystem. Please read [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines and our Developer Certificate of Origin (DCO) process.
 
-### Key Contribution Areas:
+**Priority Areas:**
+- Visual intent engine accuracy (reduce 28% "Unknown" classification rate)
+- End-to-end matching engine verification
+- Confidence scoring model calibration
+- Local development environment simplification
+- Protocol RFCs and architecture documentation
 
-- Signal categorization engine (fix 28% "Unknown" rate)
-- Matching engine end-to-end verification
-- Confidence scoring model implementation
-- Local development environment setup
-- Protocol documentation and RFCs
+---
 
 ## Security
 
-### Reporting Vulnerabilities
+Report vulnerabilities responsibly: **security@ekexintelligence.com**
+Do NOT open public issues for security vulnerabilities.
 
-If you discover a security vulnerability in EKEX Intelligence, please report it responsibly:
+- Environment files protected by `.gitignore`
+- API rate limiting enabled by default
+- Parameterized database queries
+- Input validation at all entry points
 
-📧 [info@ekexintelligence.com](mailto:info@ekexintelligence.com)
+---
 
-**Please DO NOT open public issues for security vulnerabilities.**
-
-### Security Best Practices
-
-- All environment files are protected by `.gitignore`
-- Commercial module boundaries are strictly enforced
-- API rate limiting is enabled by default
-- Input validation and sanitization at all entry points
-- Database queries use parameterized statements
-
-## Support & Enterprise
+## Support
 
 | Channel | Contact |
-|---------|----------|
-| All Inquiries | [info@ekexintelligence.com](mailto:info@ekexintelligence.com) |
+|---|---|
+| **General Inquiries** | info@ekexintelligence.com |
+| **Security Issues** | security@ekexintelligence.com |
+| **Legal Matters** | legal@ekexintelligence.com |
+| **Contributors** | contributors@ekexintelligence.com |
 
-## About Kimuntu Group
+---
 
-EKEX Intelligence is a product of **Kimuntu Group**, founded on **16 March 2026**.
+## About
 
-### Leadership:
+**EKEX Intelligence** is maintained by **Kimuntu Group**, founded 16 March 2026 by **Kayembe Ilunga Eddy-Grant**, with co-founders **Stephane Bilambo** (Finance & Operations) and **Goetz Kisoni**.
 
-- **Kayembe Ilunga Eddy-Grant** — Founder & Head of the Board
-- **Goetz Kisoni** — Co-Founder & CEO
-
-### Contributors & Advisors:
-
-- **Stephane Bilambo** — First Angel Investor & Early Contributor (4.5% equity, no vesting) · Part-time Consultant
-
-We are committed to building open, transparent infrastructure for African markets. This repository reflects that commitment — honest about current capabilities, clear about future direction, and transparent about the hard technical problems we're solving together.
-
-> "We are not asking you to believe the white paper. We are asking you to help us make it true."
->
+> *"We are not asking you to believe the white paper. We are asking you to help us make it true."*
 > — Kimuntu Group, 2026
 
 ---
 
 <div align="center">
 
-**EKEX Intelligence** · **Kimuntu Group** · [Documentation](https://github.com/kimuntugroup-commits/EKEXINTELLIGENCE/tree/main/docs)
+**[EKEX Intelligence](https://ekexintelligence.com)** · **[Documentation](https://docs.ekexintelligence.com)** · **[Kimuntu Group](https://kimuntugroup.com)**
 
-© 2026 Kimuntu Group. Licensed under [GNU AGPLv3](https://www.gnu.org/licenses/agpl-3.0).
+*© 2026 Kimuntu Group. Licensed under GNU AGPLv3.*
 
 </div>
