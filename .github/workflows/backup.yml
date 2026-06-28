@@ -1,0 +1,42 @@
+name: Weekly Repository Backup
+
+on:
+  schedule:
+    # Runs every Monday at 2:00 AM UTC
+    - cron: '0 2 * * 1'
+  workflow_dispatch:  # Allows manual trigger
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create backup branch
+        run: |
+          BACKUP_BRANCH="backup/EKEXINTELLIGENCE-$(date +%Y%m%d-%H%M%S)"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b $BACKUP_BRANCH
+          git push origin $BACKUP_BRANCH
+          echo "Created backup branch: $BACKUP_BRANCH"
+
+      - name: Clean up old backups (keep last 12)
+        run: |
+          git fetch origin
+          BACKUP_BRANCHES=$(git branch -r | grep 'origin/backup/EKEXINTELLIGENCE-' | sort -r)
+          COUNT=0
+          echo "$BACKUP_BRANCHES" | while read BRANCH; do
+            COUNT=$((COUNT + 1))
+            if [ $COUNT -gt 12 ]; then
+              BRANCH_NAME=$(echo $BRANCH | sed 's|origin/||')
+              git push origin --delete $BRANCH_NAME
+              echo "Deleted old backup: $BRANCH_NAME"
+            fi
+          done
